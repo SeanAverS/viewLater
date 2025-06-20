@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Read Later</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      width: 300px; 
+      padding: 10px;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+      margin-top: 10px;
+    }
+    #currentUrl {
+        word-break: break-all; 
+        margin-bottom: 5px;
+        font-size: 0.9em;
+        color: #555;
+    }
+    #currentTitle {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Save Current Page</h2>
+  <p id="currentTitle">Loading title...</p>
+  <p id="currentUrl">Loading URL...</p>
+  <button id="saveButton">Save This Link</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>
