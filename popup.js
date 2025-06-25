@@ -149,21 +149,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       titleInput.value = "";
 
       // set title to current tab
-      try {
-        const [tabAfterSave] = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        });
-        if (tabAfterSave && tabAfterSave.url && tabAfterSave.title) {
-          titleInput.placeholder = tabAfterSave.url;
-          titleInput.value = tabAfterSave.title;
-        } else {
-          titleInput.placeholder = "Could not get current URL.";
-          titleInput.value = "";
-        }
-      } catch (error) {
-        console.error("Error re-populating title info after save:", error);
-        titleInput.placeholder = "Error getting URL.";
+      if (tab && tab.url && tab.title) {
+        titleInput.placeholder = tab.url;
+        titleInput.value = tab.title;
+      } else {
+        titleInput.placeholder = "Could not get current URL.";
         titleInput.value = "";
       }
 
@@ -173,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Error saving link:", error);
       alert("Failed to save link.");
     }
-  });
+});
 
   // search input event listener
   searchInput.addEventListener("input", () => {
