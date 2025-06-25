@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "My Read Later",
+  "name": "viewLater",
   "version": "1.0",
-  "description": "A personal view later and bookmark manager extension.",
+  "description": "A personal bookmark manager extension.",
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -13,7 +13,8 @@
   },
   "permissions": [
     "activeTab",
-    "scripting"
+    "scripting", 
+    "storage"
   ],
   "host_permissions": ["<all_urls>"]
 }
