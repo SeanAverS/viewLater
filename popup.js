@@ -163,12 +163,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       console.error("Error saving link:", error);
       alert("Failed to save link.");
     }
-});
-
-  // search input event listener
-  searchInput.addEventListener("input", () => {
-    displaySavedLinks(searchInput.value); // Re-display links based on search input 
   });
 
+  // search input event listener
+  let searchTimeout;
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      displaySavedLinks(searchInput.value);
+    }, 300); 
+  });
   displaySavedLinks();
 });
