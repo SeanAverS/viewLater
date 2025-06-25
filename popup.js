@@ -120,6 +120,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await chrome.storage.local.get(["myLinks"]);
       const myLinks = result.myLinks || [];
 
+      // prevent duplicate saves
+      const isDuplicate = myLinks.some(
+        (link) => link.url === urlToSave && link.title === titleToSave
+      );
+      if (isDuplicate) {
+        alert("This link is already saved!");
+        return;
+      }
+
       myLinks.push({
         url: urlToSave,
         title: titleToSave,
