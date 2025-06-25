@@ -35,8 +35,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       // check link population
       if (myLinks.length === 0) {
         const listItem = document.createElement("li");
-        listItem.textContent = "No links saved yet.";
+        listItem.textContent = "No matching links found.";
         savedLinksList.appendChild(listItem);
+        return;
       } else {
         myLinks.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 
