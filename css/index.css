@@ -12,6 +12,7 @@ h3 {
   border-bottom: 1px solid #3e4451;
   padding-bottom: 5px;
   margin-top: 15px;
+  text-align: left;
 }
 
 p {
@@ -23,6 +24,13 @@ p {
   font-size: 1.1em;
   color: #e06c75;
   margin-bottom: 10px;
+  width: calc(100% - 20px);
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 label {
@@ -31,18 +39,24 @@ label {
   margin-bottom: 5px;
   color: #c678dd;
   font-size: 0.9em;
+  text-align: left;
 }
 
 input[type="text"],
 textarea {
   width: calc(100% - 20px);
   padding: 8px 10px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   border: 1px solid #3e4451;
   border-radius: 4px;
   background-color: #3b4048;
   color: #abb2bf;
   box-sizing: border-box;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  text-align: left;
 }
 
 textarea {
@@ -59,6 +73,11 @@ textarea {
   background-color: #3b4048;
   color: #abb2bf;
   box-sizing: border-box;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+  text-align: left;
 }
 
 button {
@@ -72,6 +91,10 @@ button {
   margin-top: 10px;
   font-size: 1em;
   transition: background-color 0.2s ease;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 
 button:hover {
@@ -85,6 +108,7 @@ button:hover {
   font-size: 0.8em !important;
   width: auto !important;
   margin-left: 10px !important;
+  margin-right: unset !important;
 }
 
 .delete-btn:hover {
@@ -95,6 +119,10 @@ ul {
   list-style: none;
   padding: 0;
   margin-top: 15px;
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 
 li {
@@ -104,6 +132,10 @@ li {
   padding: 10px;
   margin-bottom: 10px;
   word-wrap: break-word;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 280px;
+  text-align: left;
 }
 
 li a {
