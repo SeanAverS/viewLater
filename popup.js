@@ -90,7 +90,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
     if (tab && tab.url && tab.title) {
       titleInput.placeholder = tab.url;
-      titleInput.value = tab.title || '';;
+      titleInput.value = tab.title || '';
     } else {
       titleInput.placeholder = "Could not get current URL.";
       titleInput.value = "";
@@ -152,7 +152,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       // set title to current tab
       if (tab && tab.url && tab.title) {
         titleInput.placeholder = tab.url;
-        titleInput.value = tab.title || '';;
+        titleInput.value = tab.title || '';
       } else {
         titleInput.placeholder = "Could not get current URL.";
         titleInput.value = "";
