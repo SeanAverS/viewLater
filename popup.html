@@ -7,16 +7,16 @@
   <body>
     <h2>Save Current Page</h2>
 
-    <label for="titleInput">Link Title:</label>
-    <input type="text" id="titleInput"/>
-
-    <label for="notesInput">Notes:</label>
-    <textarea id="notesInput"></textarea>
-
+    <input type="text" id="titleInput" placeholder="Link Title">
+    <input type="text" id="notesInput" placeholder="Notes">
+    <input type="text" id="groupInput" placeholder="Group (optional)">
     <button id="saveButton">Save</button>
 
     <h3>My Saved Links:</h3>
-    <input type="text" id="searchInput" placeholder="Search saved links..." />
+    <input type="text" id="searchInput" placeholder="Search saved links...">
+    <select id="groupFilter">
+        <option value="">All Groups</option>
+        </select>
 
     <script src="popup.js"></script>
   </body>

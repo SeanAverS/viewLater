@@ -43,7 +43,8 @@ label {
 }
 
 input[type="text"],
-textarea {
+textarea,
+#groupFilter { 
   width: calc(100% - 20px);
   padding: 8px 10px;
   margin-bottom: 15px;
@@ -151,6 +152,14 @@ li a strong {
 
 li a:hover strong {
   color: #61afef;
+}
+
+.link-group {
+    font-size: 0.8em;
+    color: #b7c7d4; 
+    margin-top: 3px;
+    font-style: italic;
+    margin-bottom: 5px; 
 }
 
 .link-notes {
