@@ -148,6 +148,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       notesInput.value = "";
       titleInput.value = "";
+      searchInput.value = "";
 
       // set title to current tab
       if (tab && tab.url && tab.title) {
