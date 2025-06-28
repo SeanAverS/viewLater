@@ -103,18 +103,38 @@ button:hover {
   background-color: #528bff;
 }
 
+/* edit and delete buttons */
+.link-actions {
+    display: flex;
+    justify-content: flex-start; 
+    margin-top: 10px; 
+}
+
 .delete-btn {
   background-color: #e06c75 !important;
   padding: 5px 8px !important;
   border-radius: 3px !important;
   font-size: 0.8em !important;
   width: auto !important;
-  margin-left: 10px !important;
-  margin-right: unset !important;
+  margin: 0 !important;
 }
 
 .delete-btn:hover {
   background-color: #be5046 !important;
+}
+
+.edit-btn {
+  background-color: #61afef !important; 
+  padding: 5px 8px !important;
+  border-radius: 3px !important;
+  font-size: 0.8em !important;
+  width: auto !important;
+  margin: 0 !important;
+  margin-right: 8px !important; 
+}
+
+.edit-btn:hover {
+  background-color: #528bff !important; 
 }
 
 ul {
@@ -190,4 +210,12 @@ li a:hover strong {
 #groupInput option {
     background-color: #3b4048;
     color: #abb2bf;
+}
+
+#cancelEditButton {
+  background-color: #5c6370;
+}
+
+#cancelEditButton:hover {
+  background-color: #4a5058;
 }
