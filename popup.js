@@ -108,6 +108,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${
               link.notes ? `<p class="link-notes">Notes: ${link.notes}</p>` : ""
             }
+             ${link.group ? `<p class="link-group">Group: ${link.group}</p>` : ""}
             <div class="link-actions">
                 <button data-index="${index}" class="edit-btn">Edit</button>
                 <button data-index="${index}" class="delete-btn">Delete</button>
