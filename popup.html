@@ -9,7 +9,11 @@
 
     <input type="text" id="titleInput" placeholder="Link Title">
     <input type="text" id="notesInput" placeholder="Notes">
-    <input type="text" id="groupInput" placeholder="Group (optional)">
+    <select id="groupInput">
+      <option value="">(No Group)</option>
+      <option value="NEW_GROUP">Create New Group</option>
+    </select>
+    <input type="text" id="newGroupInput" placeholder="Enter new group name" style="display: none;"> <!-- only visible on new group creation -->
     <button id="saveButton">Save</button>
 
     <h3>My Saved Links:</h3>

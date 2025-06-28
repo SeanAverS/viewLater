@@ -7,15 +7,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   const saveButton = document.getElementById("saveButton");
   const titleInput = document.getElementById("titleInput");
   const notesInput = document.getElementById("notesInput");
-  const groupInput = document.getElementById("groupInput");
+  const groupInput = document.getElementById("groupInput"); 
+  const newGroupInput = document.getElementById("newGroupInput"); 
   const searchInput = document.getElementById("searchInput");
-  const groupFilter = document.getElementById("groupFilter"); 
+  const groupFilter = document.getElementById("groupFilter");
 
   const savedLinksList = document.createElement("ul");
   document.body.appendChild(savedLinksList);
 
-  // Function to populate group filter dropdown
-  async function populateGroupFilter() {
+    // Function to populate groupFilter and groupInput dropdowns 
+    async function populateGroupDropdowns() { 
     const result = await chrome.storage.local.get(["myLinks"]);
     const myLinks = result.myLinks || [];
     const groups = new Set(); 
@@ -31,13 +32,28 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Sort groups alphabetically
     const sortedGroups = Array.from(groups).sort((a, b) => a.localeCompare(b));
 
-    sortedGroups.forEach(group => {
-      const option = document.createElement("option");
-      option.value = group;
-      option.textContent = group;
-      groupFilter.appendChild(option);
-    });
-  }
+        // populate groupFilter dropdown
+        groupFilter.innerHTML = '<option value="">All Groups</option>';
+        sortedGroups.forEach(group => {
+            const option = document.createElement("option");
+            option.value = group;
+            option.textContent = group;
+            groupFilter.appendChild(option);
+        });
+        groupFilter.value = groupFilter.dataset.currentFilter || "";
+
+        // populate groupInput dropdown 
+        groupInput.innerHTML = `
+            <option value="">(No Group)</option>
+            <option value="NEW_GROUP">Create New Group</option>
+        `;
+        sortedGroups.forEach(group => {
+            const option = document.createElement("option");
+            option.value = group;
+            option.textContent = group;
+            groupInput.appendChild(option);
+        });
+    }
 
   // Function to display saved links and groups 
   async function displaySavedLinks(query = "", selectedGroup = "") {
@@ -107,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (indexToDelete >= 0 && indexToDelete < currentLinks.length) {
             currentLinks.splice(indexToDelete, 1);
             await chrome.storage.local.set({ myLinks: currentLinks });
-            await populateGroupFilter(); // delete group if currently empty
+            await populateGroupDropdowns(); // delete group if currently empty
             displaySavedLinks(searchInput.value, groupFilter.value); // fresh list after delete
           }
           });
@@ -140,6 +156,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     titleInput.value = "";
   }
 
+    // Event listener for groupInput dropdown to show/hide newGroupInput
+    groupInput.addEventListener("change", () => {
+        if (groupInput.value === "NEW_GROUP") {
+            newGroupInput.style.display = "block";
+        } else {
+            newGroupInput.style.display = "none";
+            newGroupInput.value = "";
+        }
+    });
+
   // Save link button event listener
   saveButton.addEventListener("click", async () => {
     const [tab] = await chrome.tabs.query({
@@ -149,7 +175,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const urlToSave = tab.url;
     const titleToSave = titleInput.value.trim();
     const notesToSave = notesInput.value.trim();
-    const groupToSave = groupInput.value.trim(); 
+
+    // Determine link to save group to
+    let groupToSave = "";
+    if (groupInput.value === "NEW_GROUP") {
+      groupToSave = newGroupInput.value.trim();
+      if (!groupToSave) {
+        alert("Please enter a name for the new group.");
+        return;
+      }
+    } else {
+      groupToSave = groupInput.value;
+    }
 
     if (!urlToSave) {
       alert("Cannot save: Invalid URL.");
@@ -195,7 +232,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       searchInput.value = "";
       groupFilter.value = ""; 
 
-      await populateGroupFilter(); // Refresh group options
+      await populateGroupDropdowns(); // Refresh group options
       displaySavedLinks();
     } catch (error) {
       console.error("Error saving link:", error);
@@ -218,6 +255,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     displaySavedLinks(searchInput.value, groupFilter.value); 
   });
 
-  await populateGroupFilter(); // Populate groups first
-  displaySavedLinks();
+    await populateGroupDropdowns(); // Populate groups first
+    displaySavedLinks();
 });
