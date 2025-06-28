@@ -11,9 +11,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const newGroupInput = document.getElementById("newGroupInput"); 
   const searchInput = document.getElementById("searchInput");
   const groupFilter = document.getElementById("groupFilter");
+  const savedLinksList = document.getElementById("savedLinksList"); 
+  let editIndex = -1; 
 
-  const savedLinksList = document.createElement("ul");
-  document.body.appendChild(savedLinksList);
+  // Cancel edit button 
+  const cancelEditButton = document.createElement("button");
+  cancelEditButton.id = "cancelEditButton";
+  cancelEditButton.textContent = "Cancel Edit";
+  cancelEditButton.style.display = "none"; 
+  saveButton.parentNode.insertBefore(cancelEditButton, saveButton.nextSibling); 
 
     // Function to populate groupFilter and groupInput dropdowns 
     async function populateGroupDropdowns() { 
@@ -102,10 +108,10 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${
               link.notes ? `<p class="link-notes">Notes: ${link.notes}</p>` : ""
             }
-          ${
-            link.group ? `<p class="link-group">Group: ${link.group}</p>` : "" 
-          }
-            <button data-index="${index}" class="delete-btn">Delete</button>
+            <div class="link-actions">
+                <button data-index="${index}" class="edit-btn">Edit</button>
+                <button data-index="${index}" class="delete-btn">Delete</button>
+            </div>
           `;
           savedLinksList.appendChild(listItem);
         });
@@ -126,6 +132,34 @@ document.addEventListener("DOMContentLoaded", async () => {
             await populateGroupDropdowns(); // delete group if currently empty
             displaySavedLinks(searchInput.value, groupFilter.value); // fresh list after delete
           }
+          });
+        });
+
+        // Edit link button event listener
+        savedLinksList.querySelectorAll(".edit-btn").forEach((button) => {
+          button.addEventListener("click", async (event) => {
+            const currentLinks =
+              (await chrome.storage.local.get(["myLinks"])).myLinks || [];
+            currentLinks.sort(
+              (a, b) => new Date(b.savedAt) - new Date(a.savedAt)
+            );
+
+            editIndex = parseInt(event.target.dataset.index);
+            const linkToEdit = currentLinks[editIndex];
+
+            if (linkToEdit) {
+              titleInput.value = linkToEdit.title || "";
+              notesInput.value = linkToEdit.notes || "";
+              groupInput.value = linkToEdit.group || "";
+              newGroupInput.value = ""; // Clear new group input
+              newGroupInput.style.display = "none";
+
+              saveButton.textContent = "Update Link";
+              cancelEditButton.style.display = "block";
+             
+              // Scroll to edit link section
+              document.body.scrollTop = document.documentElement.scrollTop = 0;
+            }
           });
         });
       }
@@ -166,7 +200,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-  // Save link button event listener
+  // Save/Update link button event listener
   saveButton.addEventListener("click", async () => {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -193,19 +227,46 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // save link to local storage
+    // save or edit link to local storage
     try {
       const result = await chrome.storage.local.get(["myLinks"]);
       const myLinks = result.myLinks || [];
 
-      // prevent duplicate saves
-      const isDuplicate = myLinks.some(
-        (link) => link.url === urlToSave && link.title === titleToSave && link.group === groupToSave
-      );
-      if (isDuplicate) {
-        alert("This link with the same title and group is already saved!");
-        return;
-      }
+      if (editIndex !== -1) {
+        const originalLink = myLinks.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt))[editIndex];
+
+        // prevent duplicate links
+        if (originalLink) {
+            const isDuplicate = myLinks.some((link, idx) =>
+                idx !== editIndex &&
+                link.url === originalLink.url &&
+                link.title === titleToSave &&
+                link.group === groupToSave
+            );
+            if (isDuplicate) {
+                alert("A link with this title and group already exists!");
+                return;
+            }
+
+            originalLink.title = titleToSave;
+            originalLink.notes = notesToSave;
+            originalLink.group = groupToSave;
+            await chrome.storage.local.set({ myLinks });
+            alert("Link updated successfully!");
+        } else {
+            alert("Error: Link to update not found.");
+        }
+      } else {
+        const isDuplicate = myLinks.some(
+          (link) =>
+            link.url === urlToSave &&
+            link.title === titleToSave &&
+            link.group === groupToSave
+        );
+        if (isDuplicate) {
+          alert("This link with the same title and group is already saved!");
+          return;
+        }
 
       myLinks.push({
         url: urlToSave,
@@ -215,28 +276,64 @@ document.addEventListener("DOMContentLoaded", async () => {
         savedAt: new Date().toISOString(), // for sorting by new
       });
 
-      await chrome.storage.local.set({ myLinks });
-
+        await chrome.storage.local.set({ myLinks }); 
       console.log("Link saved successfully:", {
         url: urlToSave,
         title: titleToSave,
         notes: notesToSave,
         group: groupToSave,
       });
-      alert("Link saved successfully!");
+        alert("Link saved successfully!");
+      }
 
       // Reset inputs for next save
       notesInput.value = "";
       groupInput.value = ""; 
-      titleInput.value = "";
+      newGroupInput.value = "";
+      newGroupInput.style.display = "none";
       searchInput.value = "";
       groupFilter.value = ""; 
+      saveButton.textContent = "Save";
+      cancelEditButton.style.display = "none";
+      editIndex = -1; // Reset edit index
 
       await populateGroupDropdowns(); // Refresh group options
       displaySavedLinks();
     } catch (error) {
-      console.error("Error saving link:", error);
-      alert("Failed to save link.");
+      console.error("Error saving/updating link:", error);
+      alert("Failed to save/update link.");
+    }
+  });
+
+  // Cancel Edit button event listener
+  cancelEditButton.addEventListener("click", async () => {
+    // Reset inputs and UI state
+    titleInput.value = "";
+    notesInput.value = "";
+    groupInput.value = "";
+    newGroupInput.value = "";
+    newGroupInput.style.display = "none";
+    saveButton.textContent = "Save";
+    cancelEditButton.style.display = "none";
+    editIndex = -1; // Reset edit index
+
+    // Re-populate titleInput with current tab 
+    try {
+      const [tab] = await chrome.tabs.query({
+        active: true,
+        currentWindow: true,
+      });
+      if (tab && tab.url && tab.title) {
+        titleInput.placeholder = tab.url;
+        titleInput.value = tab.title || "";
+      } else {
+        titleInput.placeholder = "Could not get current URL.";
+        titleInput.value = "";
+      }
+    } catch (error) {
+      console.error("Error getting current tab info:", error);
+      titleInput.placeholder = "Error getting URL.";
+      titleInput.value = "";
     }
   });
 
