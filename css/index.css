@@ -44,7 +44,8 @@ label {
 
 input[type="text"],
 textarea,
-#groupFilter { 
+#groupFilter,
+#groupInput { 
   width: calc(100% - 20px);
   padding: 8px 10px;
   margin-bottom: 15px;
@@ -174,4 +175,19 @@ li a:hover strong {
   margin: 0 auto 15px auto;
   width: 80px;
   height: auto;
+}
+
+#groupInput {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23abb2bf" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 8px top 50%;
+    background-size: 18px auto;
+}
+
+#groupInput option {
+    background-color: #3b4048;
+    color: #abb2bf;
 }
