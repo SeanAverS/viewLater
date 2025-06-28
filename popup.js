@@ -33,13 +33,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
 
-    groupFilter.innerHTML = '<option value="">All Groups</option>';
+    groupFilter.innerHTML = '<option value="">Groups</option>';
     
     // Sort groups alphabetically
     const sortedGroups = Array.from(groups).sort((a, b) => a.localeCompare(b));
 
         // populate groupFilter dropdown
-        groupFilter.innerHTML = '<option value="">All Groups</option>';
+        groupFilter.innerHTML = '<option value="">Groups</option>';
         sortedGroups.forEach(group => {
             const option = document.createElement("option");
             option.value = group;
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // populate groupInput dropdown 
         groupInput.innerHTML = `
-            <option value="">(No Group)</option>
+            <option value="">No Group</option>
             <option value="NEW_GROUP">Create New Group</option>
         `;
         sortedGroups.forEach(group => {
