@@ -13,6 +13,7 @@ h3 {
   padding-bottom: 5px;
   margin-top: 15px;
   text-align: left;
+  transition: opacity 0.2s ease, color 0.2s ease; 
 }
 
 p {
@@ -218,4 +219,12 @@ li a:hover strong {
 
 #cancelEditButton:hover {
   background-color: #4a5058;
+}
+
+.fade-out {
+  opacity: 0;
+}
+
+.fade-in {
+  opacity: 1;
 }
