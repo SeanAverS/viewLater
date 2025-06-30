@@ -11,8 +11,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const newGroupInput = document.getElementById("newGroupInput"); 
   const searchInput = document.getElementById("searchInput");
   const groupFilter = document.getElementById("groupFilter");
-  const savedLinksList = document.getElementById("savedLinksList"); 
-  let editIndex = -1; 
+  const savedLinksList = document.getElementById("savedLinksList");
+  const formTitle = document.getElementById("formTitle");
+  let editIndex = -1;
 
   // Cancel edit button 
   const cancelEditButton = document.createElement("button");
@@ -157,7 +158,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               saveButton.textContent = "Update Link";
               cancelEditButton.style.display = "block";
-             
+
+              // form title transition
+              formTitle.classList.add("fade-out");
+              setTimeout(() => {
+                formTitle.textContent = "Edit Current Link";
+                formTitle.classList.remove("fade-out");
+                formTitle.classList.add("fade-in");
+                setTimeout(() => {
+                  formTitle.classList.remove("fade-in");
+                }, 300);
+              }, 300);
+
               // Scroll to edit link section
               document.body.scrollTop = document.documentElement.scrollTop = 0;
             }
@@ -298,6 +310,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       cancelEditButton.style.display = "none";
       editIndex = -1; // Reset edit index
 
+      // Reset form title transition
+      formTitle.classList.add("fade-out");
+      setTimeout(() => {
+        formTitle.textContent = "Save Current Page";
+        formTitle.classList.remove("fade-out");
+        formTitle.classList.add("fade-in");
+        setTimeout(() => {
+          formTitle.classList.remove("fade-in");
+        }, 300);
+      }, 300);
+
       await populateGroupDropdowns(); // Refresh group options
       displaySavedLinks();
     } catch (error) {
@@ -336,6 +359,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       titleInput.placeholder = "Error getting URL.";
       titleInput.value = "";
     }
+
+    // Reset form title transition
+    formTitle.classList.add("fade-out");
+    setTimeout(() => {
+      formTitle.textContent = "Save Current Page";
+      formTitle.classList.remove("fade-out");
+      formTitle.classList.add("fade-in");
+      setTimeout(() => {
+        formTitle.classList.remove("fade-in");
+      }, 300);
+    }, 300);
   });
 
   // search input event listener
