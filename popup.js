@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const formTitle = document.getElementById("formTitle");
   let editIndex = -1;
 
+  const initialDisplayLimit = 3;
+  let showAllLinks = false; 
+
   // Cancel edit button 
   const cancelEditButton = document.createElement("button");
   cancelEditButton.id = "cancelEditButton";
@@ -99,7 +102,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       } else {
         myLinks.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 
-        myLinks.forEach((link, index) => {
+        // Determine links to display 
+        const linksToRender = showAllLinks ? myLinks : myLinks.slice(0, initialDisplayLimit);
+
+        linksToRender.forEach((link) => {
           const listItem = document.createElement("li");
         // HTML for link, link notes, and link groups
         listItem.innerHTML = `
@@ -109,14 +115,39 @@ document.addEventListener("DOMContentLoaded", async () => {
             ${
               link.notes ? `<p class="link-notes">Notes: ${link.notes}</p>` : ""
             }
-             ${link.group ? `<p class="link-group">Group: ${link.group}</p>` : ""}
+            ${link.group ? `<p class="link-group">Group: ${link.group}</p>` : ""}
             <div class="link-actions">
-                <button data-index="${index}" class="edit-btn">Edit</button>
-                <button data-index="${index}" class="delete-btn">Delete</button>
+                <button data-url="${link.url}" data-title="${link.title}" data-group="${link.group}" class="edit-btn">Edit</button>
+                <button data-url="${link.url}" data-title="${link.title}" data-group="${link.group}" class="delete-btn">Delete</button>
             </div>
           `;
           savedLinksList.appendChild(listItem);
         });
+
+        // "Show All Links" or "Show Less" button
+        if (myLinks.length > initialDisplayLimit) {
+          const showMoreLessContainer = document.createElement("div");
+          showMoreLessContainer.className = "show-more-container";
+          const showMoreLessButton = document.createElement("button");
+
+          if (!showAllLinks) {
+            showMoreLessButton.id = "showMoreLinks";
+            showMoreLessButton.innerHTML = `Show All Links <span class="arrow-down"></span>`;
+            showMoreLessButton.addEventListener("click", () => {
+              showAllLinks = true;
+              displaySavedLinks(searchInput.value, groupFilter.value);
+            });
+          } else {
+            showMoreLessButton.id = "showLessLinks";
+            showMoreLessButton.innerHTML = `Show Less <span class="arrow-up"></span>`;
+            showMoreLessButton.addEventListener("click", () => {
+              showAllLinks = false;
+              displaySavedLinks(searchInput.value, groupFilter.value);
+            });
+          }
+          showMoreLessContainer.appendChild(showMoreLessButton);
+          savedLinksList.appendChild(showMoreLessContainer);
+        }
 
         // Delete link button event listener
         savedLinksList.querySelectorAll(".delete-btn").forEach((button) => {
@@ -127,8 +158,18 @@ document.addEventListener("DOMContentLoaded", async () => {
               (a, b) => new Date(b.savedAt) - new Date(a.savedAt)
             );
 
-            const indexToDelete = parseInt(event.target.dataset.index);
-            if (indexToDelete >= 0 && indexToDelete < currentLinks.length) {
+            // Find the exact link to delete
+            const urlToDelete = event.target.dataset.url;
+            const titleToDelete = event.target.dataset.title;
+            const groupToDelete = event.target.dataset.group;
+
+            const indexToDelete = currentLinks.findIndex(link =>
+              link.url === urlToDelete &&
+              link.title === titleToDelete &&
+              link.group === groupToDelete
+            );
+
+            if (indexToDelete !== -1) {
             currentLinks.splice(indexToDelete, 1);
             await chrome.storage.local.set({ myLinks: currentLinks });
             await populateGroupDropdowns(); // delete group if currently empty
@@ -146,7 +187,16 @@ document.addEventListener("DOMContentLoaded", async () => {
               (a, b) => new Date(b.savedAt) - new Date(a.savedAt)
             );
 
-            editIndex = parseInt(event.target.dataset.index);
+            // Find the exact link to edit
+            const urlToEdit = event.target.dataset.url;
+            const titleToEdit = event.target.dataset.title;
+            const groupToEdit = event.target.dataset.group;
+
+            editIndex = currentLinks.findIndex(link =>
+              link.url === urlToEdit &&
+              link.title === titleToEdit &&
+              link.group === groupToEdit
+            );
             const linkToEdit = currentLinks[editIndex];
 
             if (linkToEdit) {
@@ -246,7 +296,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       const myLinks = result.myLinks || [];
 
       if (editIndex !== -1) {
-        const originalLink = myLinks.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt))[editIndex];
+        const originalLink = myLinks[editIndex];
+
 
         // prevent duplicate links
         if (originalLink) {
@@ -322,6 +373,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }, 300);
 
       await populateGroupDropdowns(); // Refresh group options
+      showAllLinks = false; // Reset to after saving/updating link
       displaySavedLinks();
     } catch (error) {
       console.error("Error saving/updating link:", error);
@@ -370,6 +422,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         formTitle.classList.remove("fade-in");
       }, 300);
     }, 300);
+
+    showAllLinks = false; // Reset after canceling edit
+    displaySavedLinks();
   });
 
   // search input event listener
@@ -377,14 +432,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchInput.addEventListener("input", () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
+      showAllLinks = false; // Reset after searching
       displaySavedLinks(searchInput.value, groupFilter.value);
-    }, 300); 
+    }, 300);
   });
 
   // group filter dropdown event listener
   groupFilter.addEventListener("change", () => {
-    groupFilter.dataset.currentFilter = groupFilter.value; 
-    displaySavedLinks(searchInput.value, groupFilter.value); 
+    groupFilter.dataset.currentFilter = groupFilter.value;
+    showAllLinks = false; // Reset after filtering groups
+    displaySavedLinks(searchInput.value, groupFilter.value);
   });
 
     await populateGroupDropdowns(); // Populate groups first
