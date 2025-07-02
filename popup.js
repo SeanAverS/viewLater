@@ -13,10 +13,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   const groupFilter = document.getElementById("groupFilter");
   const savedLinksList = document.getElementById("savedLinksList");
   const formTitle = document.getElementById("formTitle");
+  const mySavedLinksSection = document.getElementById("mySavedLinksSection"); 
   let editIndex = -1;
 
   const initialDisplayLimit = 3;
   let showAllLinks = false; 
+  let currentlyDisplayedLinks = [];
 
   // Cancel edit button 
   const cancelEditButton = document.createElement("button");
@@ -36,9 +38,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         groups.add(link.group);
       }
     });
-
-    groupFilter.innerHTML = '<option value="">Groups</option>';
-    
     // Sort groups alphabetically
     const sortedGroups = Array.from(groups).sort((a, b) => a.localeCompare(b));
 
@@ -67,7 +66,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to display saved links and groups 
   async function displaySavedLinks(query = "", selectedGroup = "") {
-    savedLinksList.innerHTML = ""; 
     try {
       const result = await chrome.storage.local.get(["myLinks"]);
       let myLinks = result.myLinks || [];
@@ -93,21 +91,48 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       }
 
-      // check link population
-      if (myLinks.length === 0) {
-        const listItem = document.createElement("li");
-        listItem.textContent = "No matching links found.";
-        savedLinksList.appendChild(listItem);
-        return;
-      } else {
         myLinks.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 
         // Determine links to display 
         const linksToRender = showAllLinks ? myLinks : myLinks.slice(0, initialDisplayLimit);
 
-        linksToRender.forEach((link) => {
-          const listItem = document.createElement("li");
-        // HTML for link, link notes, and link groups
+      // Update Links through DOM 
+      const newLinksSet = new Set(linksToRender.map(link => `${link.url}|${link.title}|${link.group}`));
+      const existingLinkElements = Array.from(savedLinksList.children);
+      const elementsToRemove = [];
+
+      // Remove links not in filter
+      // Exclude show more / show less button
+      existingLinkElements.forEach(element => {
+        if (!element.classList.contains('show-more-container')) {
+          const url = element.querySelector('a')?.href || '';
+          const strongText = element.querySelector('strong')?.textContent || '';
+          const groupP = element.querySelector('.link-group');
+          const group = groupP ? groupP.textContent.replace('Group: ', '') : '';
+
+          // format a unique key for each url
+          const normalizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
+          const normalizedStrongText = strongText;
+          const normalizedGroup = group;
+
+          const uniqueKey = `${normalizedUrl}|${normalizedStrongText}|${normalizedGroup}`;
+
+          if (!newLinksSet.has(uniqueKey)) {
+            elementsToRemove.push(element);
+          }
+        }
+      });
+
+      elementsToRemove.forEach(element => element.remove());
+
+      // Add / Re-order appropriate links
+      linksToRender.forEach((link, index) => {
+        const uniqueKey = `${link.url}|${link.title}|${link.group}`;
+        let listItem = savedLinksList.querySelector(`li[data-key="${uniqueKey}"]`);
+
+        if (!listItem) {
+          listItem = document.createElement("li");
+          listItem.dataset.key = uniqueKey;
         listItem.innerHTML = `
           <a href="${link.url}" target="_blank"><strong>${
           link.title || link.url
@@ -121,37 +146,98 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <button data-url="${link.url}" data-title="${link.title}" data-group="${link.group}" class="delete-btn">Delete</button>
             </div>
           `;
-          savedLinksList.appendChild(listItem);
-        });
+          // Append or insert new item in correct position
+          if (index < savedLinksList.children.length && savedLinksList.children[index] && !savedLinksList.children[index].classList.contains('show-more-container')) {
+            savedLinksList.insertBefore(listItem, savedLinksList.children[index]);
+          } else {
+            savedLinksList.appendChild(listItem);
+          }
+        }
+        // Ensure existing element's correctly placed
+        if (savedLinksList.children[index] !== listItem && !savedLinksList.children[index]?.classList.contains('show-more-container')) {
+             savedLinksList.insertBefore(listItem, savedLinksList.children[index]);
+        }
+      });
+
+      // No matching links message
+      const noLinksMessage = savedLinksList.querySelector('.no-links-message');
+      if (myLinks.length === 0) {
+        if (!noLinksMessage) {
+          const msgItem = document.createElement("li");
+          msgItem.className = "no-links-message";
+          msgItem.textContent = "No matching links found.";
+          savedLinksList.appendChild(msgItem);
+        }
+      } else {
+        if (noLinksMessage) {
+          noLinksMessage.remove();
+        }
+      }
 
         // "Show All Links" or "Show Less" button
-        if (myLinks.length > initialDisplayLimit) {
-          const showMoreLessContainer = document.createElement("div");
+      let showMoreLessContainer = savedLinksList.querySelector('.show-more-container');
+      if (myLinks.length > initialDisplayLimit) {
+        if (!showMoreLessContainer) {
+          showMoreLessContainer = document.createElement("div");
           showMoreLessContainer.className = "show-more-container";
-          const showMoreLessButton = document.createElement("button");
-
-          if (!showAllLinks) {
-            showMoreLessButton.id = "showMoreLinks";
-            showMoreLessButton.innerHTML = `Show All Links <span class="arrow-down"></span>`;
-            showMoreLessButton.addEventListener("click", () => {
-              showAllLinks = true;
-              displaySavedLinks(searchInput.value, groupFilter.value);
-            });
-          } else {
-            showMoreLessButton.id = "showLessLinks";
-            showMoreLessButton.innerHTML = `Show Less <span class="arrow-up"></span>`;
-            showMoreLessButton.addEventListener("click", () => {
-              showAllLinks = false;
-              displaySavedLinks(searchInput.value, groupFilter.value);
-            });
-          }
-          showMoreLessContainer.appendChild(showMoreLessButton);
           savedLinksList.appendChild(showMoreLessContainer);
         }
+        let showMoreLessButton = showMoreLessContainer.querySelector('button');
+        if (!showMoreLessButton) {
+            showMoreLessButton = document.createElement("button");
+            showMoreLessContainer.appendChild(showMoreLessButton);
+        }
 
-        // Delete link button event listener
-        savedLinksList.querySelectorAll(".delete-btn").forEach((button) => {
-          button.addEventListener("click", async (event) => {
+        // Update button text and event listener
+        if (!showAllLinks) {
+          showMoreLessButton.id = "showMoreLinks";
+          showMoreLessButton.innerHTML = `Show All Links <span class="arrow-down"></span>`;
+          showMoreLessButton.onclick = () => {
+            showAllLinks = true;
+            displaySavedLinks(searchInput.value, groupFilter.value);
+            // No scroll for "Show All Links"
+          };
+        } else {
+          showMoreLessButton.id = "showLessLinks";
+          showMoreLessButton.innerHTML = `Show Less <span class="arrow-up"></span>`;
+          showMoreLessButton.onclick = () => {
+            showAllLinks = false;
+            displaySavedLinks(searchInput.value, groupFilter.value);
+            // Scroll to "My Saved Links" section when showing less
+            if (mySavedLinksSection) {
+              mySavedLinksSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          };
+        }
+      } else {
+        if (showMoreLessContainer) {
+          showMoreLessContainer.remove(); 
+        }
+      }
+
+      // Re-attach event listeners to delete and edit buttons
+
+      // prevent duplicates 
+      savedLinksList.querySelectorAll(".delete-btn").forEach((button) => {
+        button.removeEventListener("click", handleDeleteButtonClick);
+        button.addEventListener("click", handleDeleteButtonClick);
+      });
+
+      savedLinksList.querySelectorAll(".edit-btn").forEach((button) => {
+        button.removeEventListener("click", handleEditButtonClick);
+        button.addEventListener("click", handleEditButtonClick);
+      });
+
+    } catch (error) {
+      console.error("Error displaying saved links:", error);
+      const listItem = document.createElement("li");
+      listItem.textContent = "Error loading links.";
+      savedLinksList.appendChild(listItem);
+    }
+  }
+
+  // Handle delete button click 
+  async function handleDeleteButtonClick(event) {
             const currentLinks =
               (await chrome.storage.local.get(["myLinks"])).myLinks || [];
             currentLinks.sort(
@@ -163,76 +249,67 @@ document.addEventListener("DOMContentLoaded", async () => {
             const titleToDelete = event.target.dataset.title;
             const groupToDelete = event.target.dataset.group;
 
-            const indexToDelete = currentLinks.findIndex(link =>
-              link.url === urlToDelete &&
-              link.title === titleToDelete &&
-              link.group === groupToDelete
-            );
+    const indexToDelete = currentLinks.findIndex(link =>
+      link.url === urlToDelete &&
+      link.title === titleToDelete &&
+      link.group === groupToDelete
+    );
 
-            if (indexToDelete !== -1) {
-            currentLinks.splice(indexToDelete, 1);
-            await chrome.storage.local.set({ myLinks: currentLinks });
-            await populateGroupDropdowns(); // delete group if currently empty
-            displaySavedLinks(searchInput.value, groupFilter.value); // fresh list after delete
-          }
-          });
-        });
-
-        // Edit link button event listener
-        savedLinksList.querySelectorAll(".edit-btn").forEach((button) => {
-          button.addEventListener("click", async (event) => {
-            const currentLinks =
-              (await chrome.storage.local.get(["myLinks"])).myLinks || [];
-            currentLinks.sort(
-              (a, b) => new Date(b.savedAt) - new Date(a.savedAt)
-            );
-
-            // Find the exact link to edit
-            const urlToEdit = event.target.dataset.url;
-            const titleToEdit = event.target.dataset.title;
-            const groupToEdit = event.target.dataset.group;
-
-            editIndex = currentLinks.findIndex(link =>
-              link.url === urlToEdit &&
-              link.title === titleToEdit &&
-              link.group === groupToEdit
-            );
-            const linkToEdit = currentLinks[editIndex];
-
-            if (linkToEdit) {
-              titleInput.value = linkToEdit.title || "";
-              notesInput.value = linkToEdit.notes || "";
-              groupInput.value = linkToEdit.group || "";
-              newGroupInput.value = ""; // Clear new group input
-              newGroupInput.style.display = "none";
-
-              saveButton.textContent = "Update Link";
-              cancelEditButton.style.display = "block";
-
-              // form title transition
-              formTitle.classList.add("fade-out");
-              setTimeout(() => {
-                formTitle.textContent = "Edit Current Link";
-                formTitle.classList.remove("fade-out");
-                formTitle.classList.add("fade-in");
-                setTimeout(() => {
-                  formTitle.classList.remove("fade-in");
-                }, 300);
-              }, 300);
-
-              // Scroll to edit link section
-              document.body.scrollTop = document.documentElement.scrollTop = 0;
-            }
-          });
-        });
-      }
-    } catch (error) {
-      console.error("Error displaying saved links:", error);
-      const listItem = document.createElement("li");
-      listItem.textContent = "Error loading links.";
-      savedLinksList.appendChild(listItem);
+    if (indexToDelete !== -1) {
+      currentLinks.splice(indexToDelete, 1);
+      await chrome.storage.local.set({ myLinks: currentLinks });
+      await populateGroupDropdowns();
+      displaySavedLinks(searchInput.value, groupFilter.value);
     }
   }
+
+  // Event handler for edit button clicks
+  async function handleEditButtonClick(event) {
+    const currentLinks =
+      (await chrome.storage.local.get(["myLinks"])).myLinks || [];
+    currentLinks.sort(
+      (a, b) => new Date(b.savedAt) - new Date(a.savedAt)
+    );
+
+    const urlToEdit = event.target.dataset.url;
+    const titleToEdit = event.target.dataset.title;
+    const groupToEdit = event.target.dataset.group;
+
+    editIndex = currentLinks.findIndex(link =>
+      link.url === urlToEdit &&
+      link.title === titleToEdit &&
+      link.group === groupToEdit
+    );
+    const linkToEdit = currentLinks[editIndex];
+
+    if (linkToEdit) {
+      titleInput.value = linkToEdit.title || "";
+      notesInput.value = linkToEdit.notes || "";
+      groupInput.value = linkToEdit.group || "";
+      newGroupInput.value = ""; // Clear new group input
+      newGroupInput.style.display = "none";
+
+      if (!Array.from(groupInput.options).some(option => option.value === linkToEdit.group)) {
+          groupInput.value = "";
+      }
+
+      saveButton.textContent = "Update Link";
+      cancelEditButton.style.display = "block";
+
+      formTitle.classList.add("fade-out");
+      setTimeout(() => {
+        formTitle.textContent = "Edit Current Link";
+        formTitle.classList.remove("fade-out");
+        formTitle.classList.add("fade-in");
+        setTimeout(() => {
+          formTitle.classList.remove("fade-in");
+        }, 300);
+      }, 300);
+
+      document.body.scrollTop = document.documentElement.scrollTop = 0;
+    }
+  }
+
 
   // Set link title and placeholder to current tab
   try {
