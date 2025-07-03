@@ -95,44 +95,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Determine links to display 
         const linksToRender = showAllLinks ? myLinks : myLinks.slice(0, initialDisplayLimit);
-
-      // Update Links through DOM 
-      const newLinksSet = new Set(linksToRender.map(link => `${link.url}|${link.title}|${link.group}`));
-      const existingLinkElements = Array.from(savedLinksList.children);
-      const elementsToRemove = [];
-
-      // Remove links not in filter
-      // Exclude show more / show less button
-      existingLinkElements.forEach(element => {
-        if (!element.classList.contains('show-more-container')) {
-          const url = element.querySelector('a')?.href || '';
-          const strongText = element.querySelector('strong')?.textContent || '';
-          const groupP = element.querySelector('.link-group');
-          const group = groupP ? groupP.textContent.replace('Group: ', '') : '';
-
-          // format a unique key for each url
-          const normalizedUrl = url.endsWith('/') ? url.slice(0, -1) : url;
-          const normalizedStrongText = strongText;
-          const normalizedGroup = group;
-
-          const uniqueKey = `${normalizedUrl}|${normalizedStrongText}|${normalizedGroup}`;
-
-          if (!newLinksSet.has(uniqueKey)) {
-            elementsToRemove.push(element);
-          }
-        }
-      });
-
-      elementsToRemove.forEach(element => element.remove());
+    currentlyDisplayedLinks = linksToRender; 
+    savedLinksList.innerHTML = ''; 
 
       // Add / Re-order appropriate links
       linksToRender.forEach((link, index) => {
         const uniqueKey = `${link.url}|${link.title}|${link.group}`;
-        let listItem = savedLinksList.querySelector(`li[data-key="${uniqueKey}"]`);
-
-        if (!listItem) {
-          listItem = document.createElement("li");
-          listItem.dataset.key = uniqueKey;
+      let listItem = document.createElement("li");
+        listItem.dataset.key = uniqueKey;
         listItem.innerHTML = `
           <a href="${link.url}" target="_blank"><strong>${
           link.title || link.url
@@ -146,47 +116,24 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <button data-url="${link.url}" data-title="${link.title}" data-group="${link.group}" class="delete-btn">Delete</button>
             </div>
           `;
-          // Append or insert new item in correct position
-          if (index < savedLinksList.children.length && savedLinksList.children[index] && !savedLinksList.children[index].classList.contains('show-more-container')) {
-            savedLinksList.insertBefore(listItem, savedLinksList.children[index]);
-          } else {
             savedLinksList.appendChild(listItem);
-          }
-        }
-        // Ensure existing element's correctly placed
-        if (savedLinksList.children[index] !== listItem && !savedLinksList.children[index]?.classList.contains('show-more-container')) {
-             savedLinksList.insertBefore(listItem, savedLinksList.children[index]);
-        }
       });
 
       // No matching links message
-      const noLinksMessage = savedLinksList.querySelector('.no-links-message');
       if (myLinks.length === 0) {
-        if (!noLinksMessage) {
           const msgItem = document.createElement("li");
           msgItem.className = "no-links-message";
           msgItem.textContent = "No matching links found.";
           savedLinksList.appendChild(msgItem);
-        }
-      } else {
-        if (noLinksMessage) {
-          noLinksMessage.remove();
-        }
-      }
+    }
 
         // "Show All Links" or "Show Less" button
-      let showMoreLessContainer = savedLinksList.querySelector('.show-more-container');
       if (myLinks.length > initialDisplayLimit) {
-        if (!showMoreLessContainer) {
-          showMoreLessContainer = document.createElement("div");
-          showMoreLessContainer.className = "show-more-container";
-          savedLinksList.appendChild(showMoreLessContainer);
-        }
-        let showMoreLessButton = showMoreLessContainer.querySelector('button');
-        if (!showMoreLessButton) {
-            showMoreLessButton = document.createElement("button");
-            showMoreLessContainer.appendChild(showMoreLessButton);
-        }
+      let showMoreLessContainer = document.createElement("div"); 
+      showMoreLessContainer.className = "show-more-container";
+      
+      let showMoreLessButton = document.createElement("button");
+      showMoreLessContainer.appendChild(showMoreLessButton);
 
         // Update button text and event listener
         if (!showAllLinks) {
@@ -209,10 +156,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           };
         }
-      } else {
-        if (showMoreLessContainer) {
-          showMoreLessContainer.remove(); 
-        }
+      savedLinksList.appendChild(showMoreLessContainer); 
       }
 
       // Re-attach event listeners to delete and edit buttons
