@@ -379,7 +379,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           notes: notesToSave,
           group: groupToSave,
         });
-        alert("Link saved successfully!");
       }
 
       // Reset inputs for next save
