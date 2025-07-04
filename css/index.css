@@ -20,28 +20,6 @@ p {
   margin-bottom: 5px;
 }
 
-#titleInput {
-  font-weight: bold;
-  font-size: 1.1em;
-  color: #e06c75;
-  margin-bottom: 10px;
-  width: calc(100% - 20px);
-  max-width: 280px;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-  box-sizing: border-box;
-  text-align: left;
-}
-
-label {
-  display: block;
-  margin-top: 10px;
-  margin-bottom: 5px;
-  color: #c678dd;
-  font-size: 0.9em;
-  text-align: left;
-}
 
 input[type="text"],
 textarea,
@@ -62,25 +40,18 @@ textarea,
   text-align: left;
 }
 
+#titleInput {
+  font-weight: bold;
+  font-size: 1.1em;
+  color: #e06c75;
+  margin-bottom: 10px; 
+}
+
+
+
 textarea {
   resize: vertical;
   min-height: 60px;
-}
-
-#searchInput {
-  width: calc(100% - 20px);
-  padding: 8px 10px;
-  margin-bottom: 15px;
-  border: 1px solid #3e4451;
-  border-radius: 4px;
-  background-color: #3b4048;
-  color: #abb2bf;
-  box-sizing: border-box;
-  max-width: 280px;
-  margin-left: auto;
-  margin-right: auto;
-  display: block;
-  text-align: left;
 }
 
 button {
@@ -189,13 +160,6 @@ li a:hover strong {
   font-size: 0.85em;
   margin-top: 5px;
   color: #abb2bf;
-}
-
-.header-logo {
-  display: block;
-  margin: 0 auto 15px auto;
-  width: 80px;
-  height: auto;
 }
 
 #groupInput {
