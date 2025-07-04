@@ -1,28 +1,32 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>My viewLater</title>
-    <link rel="stylesheet" href="css/index.css" />
-  </head>
-  <body>
-    <h2 id="formTitle">Save Current Page</h2>
 
-    <input type="text" id="titleInput" placeholder="Link Title">
-    <input type="text" id="notesInput" placeholder="Notes">
-    <select id="groupInput">
-      <option value="">No Group</option>
-      <option value="NEW_GROUP">Create New Group</option>
-    </select>
-    <input type="text" id="newGroupInput" placeholder="Enter new group name" style="display: none;"> <!-- only visible on new group creation -->
-    <button id="saveButton">Save</button>
+<head>
+  <title>My viewLater</title>
+  <link rel="stylesheet" href="css/index.css" />
+</head>
 
-    <h3 id="mySavedLinksSection">My Saved Links:</h3>
-    <input type="text" id="searchInput" placeholder="Search links" />
-    <select id="groupFilter">
-        <option value="">Groups</option>
-        </select>
+<body>
+  <h2 id="formTitle">Save Current Page</h2>
 
-    <ul id="savedLinksList"></ul>
-    <script src="popup.js"></script>
-  </body>
+  <input type="text" id="titleInput" placeholder="Link Title">
+  <input type="text" id="notesInput" placeholder="Notes">
+  <select id="groupInput">
+    <option value="">No Group</option>
+    <option value="NEW_GROUP">Create New Group</option>
+  </select>
+  <input type="text" id="newGroupInput" placeholder="Enter new group name" style="display: none;">
+  <!-- only visible on new group creation -->
+  <button id="saveButton">Save</button>
+
+  <h3 id="mySavedLinksSection">My Saved Links:</h3>
+  <input type="text" id="searchInput" placeholder="Search links" />
+  <select id="groupFilter">
+    <option value="">Groups</option>
+  </select>
+
+  <ul id="savedLinksList"></ul>
+  <script src="popup.js"></script>
+</body>
+
 </html>
