@@ -348,7 +348,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           originalLink.notes = notesToSave;
           originalLink.group = groupToSave;
           await chrome.storage.local.set({ myLinks });
-          alert("Link updated successfully!");
         } else {
           alert("Error: Link to update not found.");
         }
