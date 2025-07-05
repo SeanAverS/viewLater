@@ -38,12 +38,12 @@ This extension acts as a personal bookmark manager, allowing you to store links 
 
 1.  **Saving a Link:**
     * Click the `viewLater` icon in the toolbar
-    * The "Save Current Page" section will auto-fill the title with your current page
+    * The `Save Current Page` section will auto-fill the title with your current page
     * Choose to add `Notes` to the link 
     * Choose to attach the link to a new `Group`, an existing one, or none at all 
     * Click the `Save` button to store the link 
 
-2.  **Viewing and Managing Links in `My Saved Links Section`:** 
+2.  **Viewing and Managing Links in `My Saved Links` Section:** 
 
     * **Search Links:** Type to show matching links based on saved link info  
     * **Groups:** Select a specific Group to only display links from them 
