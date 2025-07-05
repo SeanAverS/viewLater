@@ -375,7 +375,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (isDuplicate) {
           alert(
-            "An updated link with this title and group already exists! Please use unique titles or groups."
+            "This link already exists"
           );
           myLinks.splice(editIndex, 0, {
             url: originalLinkUrl,
@@ -401,7 +401,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             link.group === groupToSave
         );
         if (isDuplicate) {
-          alert("This link with the same title and group is already saved!");
+          alert("This link already exists");
           return;
         }
 
