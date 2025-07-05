@@ -15,6 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const formTitle = document.getElementById("formTitle");
   const mySavedLinksSection = document.getElementById("mySavedLinksSection");
   let editIndex = -1;
+  let originalLinkUrl = ""; 
+  let originalLinkTitle = ""; 
+  let originalLinkGroup = ""; 
 
   const initialDisplayLimit = 3;
   let showAllLinks = false;
@@ -102,7 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // Add / Re-order appropriate links
       linksToRender.forEach((link, index) => {
-        const uniqueKey = `${link.url}|${link.title}|${link.group}`;
+        const uniqueKey = `${link.url}|${link.title}|${link.group}|${link.savedAt}`;
         let listItem = document.createElement("li");
         listItem.dataset.key = uniqueKey;
         listItem.innerHTML = `
@@ -118,10 +121,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             <div class="link-actions">
                 <button data-url="${link.url}" data-title="${
           link.title
-        }" data-group="${link.group}" class="edit-btn">Edit</button>
+        }" data-group="${link.group}" data-savedat="${
+          link.savedAt
+        }" class="edit-btn">Edit</button>
                 <button data-url="${link.url}" data-title="${
           link.title
-        }" data-group="${link.group}" class="delete-btn">Delete</button>
+        }" data-group="${link.group}" data-savedat="${
+          link.savedAt
+        }" class="delete-btn">Delete</button>
             </div>
           `;
         savedLinksList.appendChild(listItem);
@@ -194,23 +201,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function handleDeleteButtonClick(event) {
     const currentLinks =
       (await chrome.storage.local.get(["myLinks"])).myLinks || [];
-    currentLinks.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
 
     // Find the exact link to delete
     const urlToDelete = event.target.dataset.url;
     const titleToDelete = event.target.dataset.title;
     const groupToDelete = event.target.dataset.group;
+    const savedAtToDelete = event.target.dataset.savedat; 
 
-    const indexToDelete = currentLinks.findIndex(
+    const matchedLink = currentLinks.filter(
       (link) =>
-        link.url === urlToDelete &&
-        link.title === titleToDelete &&
-        link.group === groupToDelete
+        !(
+          link.url === urlToDelete &&
+          link.title === titleToDelete &&
+          link.group === groupToDelete &&
+          link.savedAt === savedAtToDelete
+        )
     );
 
-    if (indexToDelete !== -1) {
-      currentLinks.splice(indexToDelete, 1);
-      await chrome.storage.local.set({ myLinks: currentLinks });
+    if (matchedLink.length < currentLinks.length) {
+      await chrome.storage.local.set({ myLinks: matchedLink });
       await populateGroupDropdowns();
       displaySavedLinks(searchInput.value, groupFilter.value);
     }
@@ -225,16 +234,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     const urlToEdit = event.target.dataset.url;
     const titleToEdit = event.target.dataset.title;
     const groupToEdit = event.target.dataset.group;
+    const savedAtToEdit = event.target.dataset.savedat; 
 
     editIndex = currentLinks.findIndex(
       (link) =>
         link.url === urlToEdit &&
         link.title === titleToEdit &&
-        link.group === groupToEdit
+        link.group === groupToEdit &&
+        link.savedAt === savedAtToEdit 
     );
     const linkToEdit = currentLinks[editIndex];
 
     if (linkToEdit) {
+      // Store original link to compare later
+      originalLinkUrl = linkToEdit.url;
+      originalLinkTitle = linkToEdit.title;
+      originalLinkGroup = linkToEdit.group;
+      originalLinkSavedAt = linkToEdit.savedAt;
+
       titleInput.value = linkToEdit.title || "";
       notesInput.value = linkToEdit.notes || "";
       groupInput.value = linkToEdit.group || "";
@@ -324,33 +341,58 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // save or edit link to local storage
     try {
-      const result = await chrome.storage.local.get(["myLinks"]);
-      const myLinks = result.myLinks || [];
+      let result = await chrome.storage.local.get(["myLinks"]);
+      let myLinks = result.myLinks || [];
 
       if (editIndex !== -1) {
-        const originalLink = myLinks[editIndex];
+        // Remove unedited duplicate link 
+        const updatedLink = {
+          url: originalLinkUrl, 
+          title: titleToSave,
+          notes: notesToSave,
+          group: groupToSave,
+          savedAt: originalLinkSavedAt, 
+        };
 
-        // prevent duplicate links
-        if (originalLink) {
-          const isDuplicate = myLinks.some(
-            (link, idx) =>
-              idx !== editIndex &&
-              link.url === originalLink.url &&
-              link.title === titleToSave &&
-              link.group === groupToSave
+        // Filter out unedited link 
+        const matchedLink = myLinks.filter(
+          (link) =>
+            !(
+              link.url === originalLinkUrl &&
+              link.title === originalLinkTitle &&
+              link.group === originalLinkGroup &&
+              link.savedAt === originalLinkSavedAt
+            )
+        );
+
+        // Match edited link with unedited link
+        const isDuplicate = matchedLink.some(
+          (link) =>
+            link.url === updatedLink.url &&
+            link.title === updatedLink.title &&
+            link.group === updatedLink.group
+        );
+
+        if (isDuplicate) {
+          alert(
+            "An updated link with this title and group already exists! Please use unique titles or groups."
           );
-          if (isDuplicate) {
-            alert("A link with this title and group already exists!");
-            return;
-          }
-
-          originalLink.title = titleToSave;
-          originalLink.notes = notesToSave;
-          originalLink.group = groupToSave;
-          await chrome.storage.local.set({ myLinks });
-        } else {
-          alert("Error: Link to update not found.");
+          myLinks.splice(editIndex, 0, {
+            url: originalLinkUrl,
+            title: originalLinkTitle,
+            notes: notesInput.value, 
+            group: originalLinkGroup,
+            savedAt: originalLinkSavedAt,
+          });
+          await chrome.storage.local.set({ myLinks }); 
+          return;
         }
+
+        // Display edited link
+        matchedLink.push(updatedLink);
+        myLinks = matchedLink; 
+
+        await chrome.storage.local.set({ myLinks });
       } else {
         const isDuplicate = myLinks.some(
           (link) =>
@@ -390,6 +432,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveButton.textContent = "Save";
       cancelEditButton.style.display = "none";
       editIndex = -1; // Reset edit index
+      originalLinkUrl = ""; 
+      originalLinkTitle = "";
+      originalLinkGroup = "";
+      originalLinkSavedAt = "";
 
       // Reset form title transition
       formTitle.classList.add("fade-out");
@@ -422,6 +468,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     saveButton.textContent = "Save";
     cancelEditButton.style.display = "none";
     editIndex = -1; // Reset edit index
+    originalLinkUrl = ""; 
+    originalLinkTitle = "";
+    originalLinkGroup = "";
+    originalLinkSavedAt = "";
 
     // Re-populate titleInput with current tab
     try {
