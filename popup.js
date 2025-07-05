@@ -197,6 +197,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
+  // UI messages 
+  function showMessage(message, type = "error") {
+    messageDisplay.textContent = message;
+    messageDisplay.className = `message-display ${type}`; 
+    messageDisplay.style.display = "block";
+
+    setTimeout(() => {
+      messageDisplay.style.display = "none";
+      messageDisplay.textContent = "";
+      messageDisplay.className = "message-display"; 
+    }, 3000); 
+  }
+
   // Handle delete button click
   async function handleDeleteButtonClick(event) {
     const currentLinks =
@@ -327,7 +340,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (groupInput.value === "NEW_GROUP") {
       groupToSave = newGroupInput.value.trim();
       if (!groupToSave) {
-        alert("Please enter a name for the new group.");
+        showMessage("Please enter a name for the new group.", "error");
         return;
       }
     } else {
@@ -335,7 +348,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (!urlToSave) {
-      alert("Cannot save: Invalid URL.");
+       showMessage("Cannot save: Invalid URL.", "error");
       return;
     }
 
@@ -374,9 +387,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
         if (isDuplicate) {
-          alert(
-            "This link already exists"
-          );
+          showMessage("This link already exists!", "error");
           myLinks.splice(editIndex, 0, {
             url: originalLinkUrl,
             title: originalLinkTitle,
@@ -401,7 +412,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             link.group === groupToSave
         );
         if (isDuplicate) {
-          alert("This link already exists");
+          showMessage("This link already exists!", "error");
           return;
         }
 
@@ -453,7 +464,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       displaySavedLinks();
     } catch (error) {
       console.error("Error saving/updating link:", error);
-      alert("Failed to save/update link.");
+      showMessage("Failed to save/update link.", "error");
     }
   });
 
