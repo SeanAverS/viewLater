@@ -270,3 +270,21 @@ li a:hover strong {
   margin-right: auto;
   display: block;
 }
+
+#attribution {
+    text-align: center; 
+    font-size: 0.85em;
+    margin-top: 20px; 
+    color: #abb2bf; 
+}
+
+#attribution a {
+    color: #61afef; 
+    text-decoration: none; 
+    transition: color 0.2s ease; 
+}
+
+#attribution a:hover {
+    color: #528bff; 
+    text-decoration: underline; 
+}
