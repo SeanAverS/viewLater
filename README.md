@@ -2,7 +2,7 @@
 
 This extension acts as a personal bookmark manager, allowing you to store links with custom titles and notes. It also gives you the option to group them for easy access.
 
-![Demo of App Interaction](gifs/viewlater-demo.gif)
+![Demo of App Interaction](gifs/viewlater_demo.gif)
 
 ---
 
