@@ -240,34 +240,33 @@ li a:hover strong {
 }
 
 .message-display {
-  margin-top: 15px; 
+  margin-top: 15px;
   padding: 10px;
   border-radius: 4px;
   text-align: center;
   font-weight: bold;
-  opacity: 0; 
+  opacity: 0;
   transition: opacity 0.3s ease-in-out;
-  display: none; 
+  display: none;
 }
 
 .message-display.success {
   background-color: #2e353f;
-  color: #98c379; 
-  border: 1px solid #629c42; 
-  opacity: 1; 
-}
-
-.message-display.error {
-  background-color: #3f2e32; 
-  color: #e06c75; 
-  border: 1px solid #a34751; 
+  color: #98c379;
+  border: 1px solid #629c42;
   opacity: 1;
 }
 
+.message-display.error {
+  background-color: #3f2e32;
+  color: #e06c75;
+  border: 1px solid #a34751;
+  opacity: 1;
+}
 
 #messageDisplay {
-    max-width: 280px;
-    margin-left: auto;
-    margin-right: auto;
-    display: block; 
+  max-width: 280px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
