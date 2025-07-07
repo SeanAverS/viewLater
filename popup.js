@@ -36,12 +36,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const myLinks = result.myLinks || [];
     const groups = new Set();
 
+    // populate valid link in group 
     myLinks.forEach((link) => {
       if (link.group) {
         groups.add(link.group);
       }
     });
-    // Sort groups alphabetically
+    
     const sortedGroups = Array.from(groups).sort((a, b) => a.localeCompare(b));
 
     // populate groupFilter dropdown
@@ -134,7 +135,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         savedLinksList.appendChild(listItem);
       });
 
-      // No matching links message
+      // No matching links 
       if (myLinks.length === 0) {
         const msgItem = document.createElement("li");
         msgItem.className = "no-links-message";
@@ -142,7 +143,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         savedLinksList.appendChild(msgItem);
       }
 
-      // "Show All Links" or "Show Less" button
+      // "Show All Links" or "Show Less" content 
       if (myLinks.length > initialDisplayLimit) {
         let showMoreLessContainer = document.createElement("div");
         showMoreLessContainer.className = "show-more-container";
@@ -150,14 +151,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         let showMoreLessButton = document.createElement("button");
         showMoreLessContainer.appendChild(showMoreLessButton);
 
-        // Update button text and event listener
         if (!showAllLinks) {
           showMoreLessButton.id = "showMoreLinks";
           showMoreLessButton.innerHTML = `Show All Links <span class="arrow-down"></span>`;
           showMoreLessButton.onclick = () => {
             showAllLinks = true;
             displaySavedLinks(searchInput.value, groupFilter.value);
-            // No scroll for "Show All Links"
           };
         } else {
           showMoreLessButton.id = "showLessLinks";
@@ -165,7 +164,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           showMoreLessButton.onclick = () => {
             showAllLinks = false;
             displaySavedLinks(searchInput.value, groupFilter.value);
-            // Scroll to "My Saved Links" section when showing less
             if (mySavedLinksSection) {
               mySavedLinksSection.scrollIntoView({
                 behavior: "smooth",
@@ -177,14 +175,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         savedLinksList.appendChild(showMoreLessContainer);
       }
 
-      // Re-attach event listeners to delete and edit buttons
-
-      // prevent duplicates
+      // Prevent duplicate delete button
       savedLinksList.querySelectorAll(".delete-btn").forEach((button) => {
         button.removeEventListener("click", handleDeleteButtonClick);
         button.addEventListener("click", handleDeleteButtonClick);
       });
 
+      // Prevent duplicate edit button
       savedLinksList.querySelectorAll(".edit-btn").forEach((button) => {
         button.removeEventListener("click", handleEditButtonClick);
         button.addEventListener("click", handleEditButtonClick);
@@ -215,12 +212,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const currentLinks =
       (await chrome.storage.local.get(["myLinks"])).myLinks || [];
 
-    // Find the exact link to delete
     const urlToDelete = event.target.dataset.url;
     const titleToDelete = event.target.dataset.title;
     const groupToDelete = event.target.dataset.group;
     const savedAtToDelete = event.target.dataset.savedat; 
 
+    // Find exact link to delete
     const matchedLink = currentLinks.filter(
       (link) =>
         !(
@@ -231,9 +228,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         )
     );
 
+    // Delete exact link 
     if (matchedLink.length < currentLinks.length) {
       await chrome.storage.local.set({ myLinks: matchedLink });
-      await populateGroupDropdowns();
+      await populateGroupDropdowns(); 
       displaySavedLinks(searchInput.value, groupFilter.value);
     }
   }
@@ -249,6 +247,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const groupToEdit = event.target.dataset.group;
     const savedAtToEdit = event.target.dataset.savedat; 
 
+    // Find exact link to edit 
     editIndex = currentLinks.findIndex(
       (link) =>
         link.url === urlToEdit &&
@@ -268,9 +267,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       titleInput.value = linkToEdit.title || "";
       notesInput.value = linkToEdit.notes || "";
       groupInput.value = linkToEdit.group || "";
-      newGroupInput.value = ""; // Clear new group input
+      newGroupInput.value = ""; 
       newGroupInput.style.display = "none";
 
+      // Reset group input if link group isn't in dropdown
       if (
         !Array.from(groupInput.options).some(
           (option) => option.value === linkToEdit.group
@@ -278,7 +278,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       ) {
         groupInput.value = "";
       }
-
+      
+      // Edit link form 
       saveButton.textContent = "Update Link";
       cancelEditButton.style.display = "block";
 
@@ -315,7 +316,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     titleInput.value = "";
   }
 
-  // Event listener for groupInput dropdown to show/hide newGroupInput
+  // Show or Hide new group input 
   groupInput.addEventListener("change", () => {
     if (groupInput.value === "NEW_GROUP") {
       newGroupInput.style.display = "block";
@@ -325,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Save/Update link button event listener
+  // Save or Update link 
   saveButton.addEventListener("click", async () => {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -352,7 +353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // save or edit link to local storage
+    // Save or Edit link to local storage
     try {
       let result = await chrome.storage.local.get(["myLinks"]);
       let myLinks = result.myLinks || [];
@@ -367,7 +368,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           savedAt: originalLinkSavedAt, 
         };
 
-        // Filter out unedited link 
+        // Find exact unedited link 
         const matchedLink = myLinks.filter(
           (link) =>
             !(
@@ -459,8 +460,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, 300);
       }, 300);
 
-      await populateGroupDropdowns(); // Refresh group options
-      showAllLinks = false; // Reset to after saving/updating link
+      await populateGroupDropdowns(); 
+      showAllLinks = false; 
       displaySavedLinks();
     } catch (error) {
       console.error("Error saving/updating link:", error);
@@ -478,7 +479,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     newGroupInput.style.display = "none";
     saveButton.textContent = "Save";
     cancelEditButton.style.display = "none";
-    editIndex = -1; // Reset edit index
+    editIndex = -1; 
     originalLinkUrl = ""; 
     originalLinkTitle = "";
     originalLinkGroup = "";
@@ -518,23 +519,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     displaySavedLinks();
   });
 
-  // search input event listener
+  // Search input
   let searchTimeout;
   searchInput.addEventListener("input", () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-      showAllLinks = false; // Reset after searching
+      showAllLinks = false; 
       displaySavedLinks(searchInput.value, groupFilter.value);
     }, 300);
   });
 
-  // group filter dropdown event listener
+  // Group filter dropdown 
   groupFilter.addEventListener("change", () => {
     groupFilter.dataset.currentFilter = groupFilter.value;
     showAllLinks = false; // Reset after filtering groups
     displaySavedLinks(searchInput.value, groupFilter.value);
   });
 
-  await populateGroupDropdowns(); // Populate groups first
+  await populateGroupDropdowns(); 
   displaySavedLinks();
 });
