@@ -197,7 +197,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // UI messages 
+  // Function to display various UI messages 
   function showMessage(message, type = "error") {
     messageDisplay.textContent = message;
     messageDisplay.className = `message-display ${type}`; 
@@ -210,7 +210,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 3000); 
   }
 
-  // Handle delete button click
+  // Function to handle delete button clicks
   async function handleDeleteButtonClick(event) {
     const currentLinks =
       (await chrome.storage.local.get(["myLinks"])).myLinks || [];
@@ -238,7 +238,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Event handler for edit button clicks
+  // Function to handle edit button clicks
   async function handleEditButtonClick(event) {
     const currentLinks =
       (await chrome.storage.local.get(["myLinks"])).myLinks || [];
