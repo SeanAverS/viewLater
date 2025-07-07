@@ -15,9 +15,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const formTitle = document.getElementById("formTitle");
   const mySavedLinksSection = document.getElementById("mySavedLinksSection");
   let editIndex = -1;
-  let originalLinkUrl = ""; 
-  let originalLinkTitle = ""; 
-  let originalLinkGroup = ""; 
+  let originalLinkUrl = "";
+  let originalLinkTitle = "";
+  let originalLinkGroup = "";
 
   const initialDisplayLimit = 3;
   let showAllLinks = false;
@@ -36,13 +36,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     const myLinks = result.myLinks || [];
     const groups = new Set();
 
-    // populate valid link in group 
+    // populate valid link in group
     myLinks.forEach((link) => {
       if (link.group) {
         groups.add(link.group);
       }
     });
-    
+
     const sortedGroups = Array.from(groups).sort((a, b) => a.localeCompare(b));
 
     // populate groupFilter dropdown
@@ -135,7 +135,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         savedLinksList.appendChild(listItem);
       });
 
-      // No matching links 
+      // No matching links
       if (myLinks.length === 0) {
         const msgItem = document.createElement("li");
         msgItem.className = "no-links-message";
@@ -143,7 +143,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         savedLinksList.appendChild(msgItem);
       }
 
-      // "Show All Links" or "Show Less" content 
+      // "Show All Links" or "Show Less" content
       if (myLinks.length > initialDisplayLimit) {
         let showMoreLessContainer = document.createElement("div");
         showMoreLessContainer.className = "show-more-container";
@@ -194,17 +194,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Function to display various UI messages 
+  // Function to display various UI messages
   function showMessage(message, type = "error") {
     messageDisplay.textContent = message;
-    messageDisplay.className = `message-display ${type}`; 
+    messageDisplay.className = `message-display ${type}`;
     messageDisplay.style.display = "block";
 
     setTimeout(() => {
       messageDisplay.style.display = "none";
       messageDisplay.textContent = "";
-      messageDisplay.className = "message-display"; 
-    }, 3000); 
+      messageDisplay.className = "message-display";
+    }, 3000);
   }
 
   // Function to handle delete button clicks
@@ -215,7 +215,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const urlToDelete = event.target.dataset.url;
     const titleToDelete = event.target.dataset.title;
     const groupToDelete = event.target.dataset.group;
-    const savedAtToDelete = event.target.dataset.savedat; 
+    const savedAtToDelete = event.target.dataset.savedat;
 
     // Find exact link to delete
     const matchedLink = currentLinks.filter(
@@ -228,10 +228,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         )
     );
 
-    // Delete exact link 
+    // Delete exact link
     if (matchedLink.length < currentLinks.length) {
       await chrome.storage.local.set({ myLinks: matchedLink });
-      await populateGroupDropdowns(); 
+      await populateGroupDropdowns();
       displaySavedLinks(searchInput.value, groupFilter.value);
     }
   }
@@ -245,15 +245,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const urlToEdit = event.target.dataset.url;
     const titleToEdit = event.target.dataset.title;
     const groupToEdit = event.target.dataset.group;
-    const savedAtToEdit = event.target.dataset.savedat; 
+    const savedAtToEdit = event.target.dataset.savedat;
 
-    // Find exact link to edit 
+    // Find exact link to edit
     editIndex = currentLinks.findIndex(
       (link) =>
         link.url === urlToEdit &&
         link.title === titleToEdit &&
         link.group === groupToEdit &&
-        link.savedAt === savedAtToEdit 
+        link.savedAt === savedAtToEdit
     );
     const linkToEdit = currentLinks[editIndex];
 
@@ -267,7 +267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       titleInput.value = linkToEdit.title || "";
       notesInput.value = linkToEdit.notes || "";
       groupInput.value = linkToEdit.group || "";
-      newGroupInput.value = ""; 
+      newGroupInput.value = "";
       newGroupInput.style.display = "none";
 
       // Reset group input if link group isn't in dropdown
@@ -278,8 +278,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       ) {
         groupInput.value = "";
       }
-      
-      // Edit link form 
+
+      // Edit link form
       saveButton.textContent = "Update Link";
       cancelEditButton.style.display = "block";
 
@@ -316,7 +316,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     titleInput.value = "";
   }
 
-  // Show or Hide new group input 
+  // Show or Hide new group input
   groupInput.addEventListener("change", () => {
     if (groupInput.value === "NEW_GROUP") {
       newGroupInput.style.display = "block";
@@ -326,7 +326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Save or Update link 
+  // Save or Update link
   saveButton.addEventListener("click", async () => {
     const [tab] = await chrome.tabs.query({
       active: true,
@@ -349,7 +349,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (!urlToSave) {
-       showMessage("Cannot save: Invalid URL.", "error");
+      showMessage("Cannot save: Invalid URL.", "error");
       return;
     }
 
@@ -359,16 +359,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       let myLinks = result.myLinks || [];
 
       if (editIndex !== -1) {
-        // Remove unedited duplicate link 
+        // Remove unedited duplicate link
         const updatedLink = {
-          url: originalLinkUrl, 
+          url: originalLinkUrl,
           title: titleToSave,
           notes: notesToSave,
           group: groupToSave,
-          savedAt: originalLinkSavedAt, 
+          savedAt: originalLinkSavedAt,
         };
 
-        // Find exact unedited link 
+        // Find exact unedited link
         const matchedLink = myLinks.filter(
           (link) =>
             !(
@@ -392,17 +392,17 @@ document.addEventListener("DOMContentLoaded", async () => {
           myLinks.splice(editIndex, 0, {
             url: originalLinkUrl,
             title: originalLinkTitle,
-            notes: notesInput.value, 
+            notes: notesInput.value,
             group: originalLinkGroup,
             savedAt: originalLinkSavedAt,
           });
-          await chrome.storage.local.set({ myLinks }); 
+          await chrome.storage.local.set({ myLinks });
           return;
         }
 
         // Display edited link
         matchedLink.push(updatedLink);
-        myLinks = matchedLink; 
+        myLinks = matchedLink;
 
         await chrome.storage.local.set({ myLinks });
       } else {
@@ -444,7 +444,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveButton.textContent = "Save";
       cancelEditButton.style.display = "none";
       editIndex = -1; // Reset edit index
-      originalLinkUrl = ""; 
+      originalLinkUrl = "";
       originalLinkTitle = "";
       originalLinkGroup = "";
       originalLinkSavedAt = "";
@@ -460,8 +460,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, 300);
       }, 300);
 
-      await populateGroupDropdowns(); 
-      showAllLinks = false; 
+      await populateGroupDropdowns();
+      showAllLinks = false;
       displaySavedLinks();
     } catch (error) {
       console.error("Error saving/updating link:", error);
@@ -479,8 +479,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     newGroupInput.style.display = "none";
     saveButton.textContent = "Save";
     cancelEditButton.style.display = "none";
-    editIndex = -1; 
-    originalLinkUrl = ""; 
+    editIndex = -1;
+    originalLinkUrl = "";
     originalLinkTitle = "";
     originalLinkGroup = "";
     originalLinkSavedAt = "";
@@ -524,18 +524,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   searchInput.addEventListener("input", () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(() => {
-      showAllLinks = false; 
+      showAllLinks = false;
       displaySavedLinks(searchInput.value, groupFilter.value);
     }, 300);
   });
 
-  // Group filter dropdown 
+  // Group filter dropdown
   groupFilter.addEventListener("change", () => {
     groupFilter.dataset.currentFilter = groupFilter.value;
     showAllLinks = false; // Reset after filtering groups
     displaySavedLinks(searchInput.value, groupFilter.value);
   });
 
-  await populateGroupDropdowns(); 
+  await populateGroupDropdowns();
   displaySavedLinks();
 });
