@@ -18,10 +18,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   let originalLinkUrl = "";
   let originalLinkTitle = "";
   let originalLinkGroup = "";
+  let originalLinkSavedAt = ""; 
 
   const initialDisplayLimit = 3;
   let showAllLinks = false;
   let currentlyDisplayedLinks = [];
+
+  const messageDisplay = document.getElementById("messageDisplay");
+
+  const importBookmarksButton = document.getElementById("importBookmarksButton");
+  const importMessage = document.getElementById("importMessage");
 
   // Cancel edit button
   const cancelEditButton = document.createElement("button");
@@ -29,6 +35,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   cancelEditButton.textContent = "Cancel Edit";
   cancelEditButton.style.display = "none";
   saveButton.parentNode.insertBefore(cancelEditButton, saveButton.nextSibling);
+
+  function showImportMessage(message, type = "info") {
+    importMessage.textContent = message;
+    if (type === "success") {
+      importMessage.style.color = "#98c379";
+    } else if (type === "error") {
+      importMessage.style.color = "#e06c75";
+    } else {
+      importMessage.style.color = "#61afef";
+    }
+    setTimeout(() => {
+        importMessage.textContent = "";
+        importMessage.style.color = "#61afef";
+    }, 5000);
+  }
 
   // Function to populate groupFilter and groupInput dropdowns
   async function populateGroupDropdowns() {
@@ -144,6 +165,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // "Show All Links" or "Show Less" content
+      const existingShowMoreLessContainer = document.querySelector(".show-more-container");
+      if (existingShowMoreLessContainer) {
+        existingShowMoreLessContainer.remove();
+      }
+
       if (myLinks.length > initialDisplayLimit) {
         let showMoreLessContainer = document.createElement("div");
         showMoreLessContainer.className = "show-more-container";
@@ -209,16 +235,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to handle delete button clicks
   async function handleDeleteButtonClick(event) {
-    const currentLinks =
-      (await chrome.storage.local.get(["myLinks"])).myLinks || [];
-
     const urlToDelete = event.target.dataset.url;
     const titleToDelete = event.target.dataset.title;
     const groupToDelete = event.target.dataset.group;
     const savedAtToDelete = event.target.dataset.savedat;
 
+    let result = await chrome.storage.local.get(["myLinks"]);
+    let myLinks = result.myLinks || [];
+
     // Find exact link to delete
-    const matchedLink = currentLinks.filter(
+    const matchedLink = myLinks.filter(
       (link) =>
         !(
           link.url === urlToDelete &&
@@ -229,7 +255,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
     // Delete exact link
-    if (matchedLink.length < currentLinks.length) {
+    if (matchedLink.length < myLinks.length) {
       await chrome.storage.local.set({ myLinks: matchedLink });
       await populateGroupDropdowns();
       displaySavedLinks(searchInput.value, groupFilter.value);
@@ -238,24 +264,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to handle edit button clicks
   async function handleEditButtonClick(event) {
-    const currentLinks =
-      (await chrome.storage.local.get(["myLinks"])).myLinks || [];
-    currentLinks.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
-
     const urlToEdit = event.target.dataset.url;
     const titleToEdit = event.target.dataset.title;
     const groupToEdit = event.target.dataset.group;
     const savedAtToEdit = event.target.dataset.savedat;
 
+    const result = await chrome.storage.local.get(["myLinks"]);
+    const myLinks = result.myLinks || [];
+
     // Find exact link to edit
-    editIndex = currentLinks.findIndex(
+    editIndex = myLinks.findIndex(
       (link) =>
         link.url === urlToEdit &&
         link.title === titleToEdit &&
         link.group === groupToEdit &&
         link.savedAt === savedAtToEdit
     );
-    const linkToEdit = currentLinks[editIndex];
+    const linkToEdit = myLinks[editIndex];
 
     if (linkToEdit) {
       // Store original link to compare later
@@ -332,7 +357,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       active: true,
       currentWindow: true,
     });
-    const urlToSave = tab.url;
+    const urlToSave = editIndex === -1 ? tab.url : originalLinkUrl;
     const titleToSave = titleInput.value.trim();
     const notesToSave = notesInput.value.trim();
 
@@ -368,43 +393,25 @@ document.addEventListener("DOMContentLoaded", async () => {
           savedAt: originalLinkSavedAt,
         };
 
-        // Find exact unedited link
-        const matchedLink = myLinks.filter(
-          (link) =>
-            !(
-              link.url === originalLinkUrl &&
-              link.title === originalLinkTitle &&
-              link.group === originalLinkGroup &&
-              link.savedAt === originalLinkSavedAt
-            )
-        );
-
-        // Match edited link with unedited link
-        const isDuplicate = matchedLink.some(
-          (link) =>
-            link.url === updatedLink.url &&
-            link.title === updatedLink.title &&
-            link.group === updatedLink.group
-        );
+        // Check for duplicates 
+        const isDuplicate = myLinks.some((link, index) => {
+            return (
+                index !== editIndex &&
+                link.url === updatedLink.url &&
+                link.title === updatedLink.title &&
+                link.group === updatedLink.group
+            );
+        });
 
         if (isDuplicate) {
           showMessage("This link already exists!", "error");
-          myLinks.splice(editIndex, 0, {
-            url: originalLinkUrl,
-            title: originalLinkTitle,
-            notes: notesInput.value,
-            group: originalLinkGroup,
-            savedAt: originalLinkSavedAt,
-          });
-          await chrome.storage.local.set({ myLinks });
           return;
         }
 
-        // Display edited link
-        matchedLink.push(updatedLink);
-        myLinks = matchedLink;
-
+        // Update the link at the found index
+        myLinks[editIndex] = updatedLink;
         await chrome.storage.local.set({ myLinks });
+
       } else {
         const isDuplicate = myLinks.some(
           (link) =>
@@ -435,6 +442,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       // Reset inputs for next save
+      titleInput.value = tab && tab.title ? tab.title : "";
       notesInput.value = "";
       groupInput.value = "";
       newGroupInput.value = "";
@@ -472,20 +480,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Cancel Edit button event listener
   cancelEditButton.addEventListener("click", async () => {
     // Reset inputs and UI state
-    titleInput.value = "";
-    notesInput.value = "";
-    groupInput.value = "";
-    newGroupInput.value = "";
-    newGroupInput.style.display = "none";
-    saveButton.textContent = "Save";
-    cancelEditButton.style.display = "none";
-    editIndex = -1;
-    originalLinkUrl = "";
-    originalLinkTitle = "";
-    originalLinkGroup = "";
-    originalLinkSavedAt = "";
-
-    // Re-populate titleInput with current tab
     try {
       const [tab] = await chrome.tabs.query({
         active: true,
@@ -503,6 +497,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       titleInput.placeholder = "Error getting URL.";
       titleInput.value = "";
     }
+
+    notesInput.value = "";
+    groupInput.value = "";
+    newGroupInput.value = "";
+    newGroupInput.style.display = "none";
+    saveButton.textContent = "Save";
+    cancelEditButton.style.display = "none";
+    editIndex = -1;
+    originalLinkUrl = "";
+    originalLinkTitle = "";
+    originalLinkGroup = "";
+    originalLinkSavedAt = "";
 
     // Reset form title transition
     formTitle.classList.add("fade-out");
@@ -535,6 +541,69 @@ document.addEventListener("DOMContentLoaded", async () => {
     showAllLinks = false; // Reset after filtering groups
     displaySavedLinks(searchInput.value, groupFilter.value);
   });
+
+  if (importBookmarksButton) {
+    importBookmarksButton.addEventListener("click", async () => {
+      showImportMessage("Importing bookmarks...", "info");
+      try {
+        const bookmarkTree = await chrome.bookmarks.getTree();
+        let importedCount = 0;
+
+        let result = await chrome.storage.local.get(["myLinks"]);
+        let myLinks = result.myLinks || [];
+
+        const isDuplicate = (url, title, group) => {
+          return myLinks.some(link =>
+            link.url === url &&
+            link.title === title &&
+            link.group === group
+          );
+        };
+
+        function processBookmarks(nodes) {
+          nodes.forEach(node => {
+            if (node.url) {
+              const bookmarkTitle = node.title || node.url;
+              const importedGroup = "Imported Links";
+
+              if (!isDuplicate(node.url, bookmarkTitle, importedGroup)) {
+                myLinks.push({
+                  url: node.url,
+                  title: bookmarkTitle,
+                  notes: "",
+                  group: importedGroup,
+                  savedAt: new Date().toISOString(),
+                });
+                importedCount++;
+              }
+            }
+            if (node.children) {
+              processBookmarks(node.children);
+            }
+          });
+        }
+
+        processBookmarks(bookmarkTree);
+
+        if (importedCount > 0) {
+          await chrome.storage.local.set({ myLinks });
+          showImportMessage(`Successfully imported ${importedCount} bookmark(s) into "Imported Links"!`, "success");
+
+          await populateGroupDropdowns();
+          showAllLinks = false;
+          displaySavedLinks();
+
+        } else {
+          showImportMessage("No new bookmarks found to import.", "info");
+        }
+
+      } catch (error) {
+        console.error("Error importing bookmarks:", error);
+        showMessage("Failed to import bookmarks. Please ensure the 'bookmarks' permission is granted.", "error");
+        showImportMessage("Failed to import bookmarks.", "error");
+      }
+    });
+  }
 
   await populateGroupDropdowns();
   displaySavedLinks();
