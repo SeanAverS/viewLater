@@ -53,7 +53,7 @@ This extension acts as a personal bookmark manager, allowing you to store links 
     * **Delete:** Click this button next to a link to delete it 
     * **Show All Links / Show Less:** The extension intially displays 3 links, press `Show All Links` for all links and `Show Less` to display the 3 links
 
-3. **Importing Existing Bookmarks (Chrome Only)**
+3. **Importing Existing Bookmarks (Chrome Only):**
     * Press the `Import Bookmarks` button to migrate existing bookmarks 
     * All existing bookmarks will be in the `Imported Links` group 
     
