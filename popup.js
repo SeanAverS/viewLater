@@ -14,11 +14,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const savedLinksList = document.getElementById("savedLinksList");
   const formTitle = document.getElementById("formTitle");
   const mySavedLinksSection = document.getElementById("mySavedLinksSection");
+
   let editIndex = -1;
   let originalLinkUrl = "";
   let originalLinkTitle = "";
   let originalLinkGroup = "";
   let originalLinkSavedAt = ""; 
+  let originalLinkId = null;
 
   const initialDisplayLimit = 3;
   let showAllLinks = false;
@@ -36,8 +38,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   cancelEditButton.style.display = "none";
   saveButton.parentNode.insertBefore(cancelEditButton, saveButton.nextSibling);
 
+  // Function generate unique id's for new links
+  function generateUniqueId() {
+    return Date.now().toString() + Math.random().toString(36).substring(2, 10);
+  }
+
+  
+  // Function to display importating bookmark message
   function showImportMessage(message, type = "info") {
     importMessage.textContent = message;
+    importMessage.style.color = ""; // Reset color
     if (type === "success") {
       importMessage.style.color = "#98c379";
     } else if (type === "error") {
@@ -47,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     setTimeout(() => {
         importMessage.textContent = "";
-        importMessage.style.color = "#61afef";
+        importMessage.style.color = ""; 
     }, 5000);
   }
 
@@ -100,18 +110,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         myLinks = myLinks.filter((link) => link.group === selectedGroup);
       }
 
-      // case insensitive search bar
-      const toLowerCase = query.toLowerCase();
-      if (toLowerCase) {
+      // Apply case-insensitive search filter
+      const lowerCaseQuery = query.toLowerCase();
+      if (lowerCaseQuery) {
         myLinks = myLinks.filter((link) => {
-          const titleMatches = link.title.toLowerCase().includes(toLowerCase);
-          const urlMatches = link.url.toLowerCase().includes(toLowerCase);
-          const notesMatches = link.notes
-            ? link.notes.toLowerCase().includes(toLowerCase)
-            : false;
-          const groupMatches = link.group
-            ? link.group.toLowerCase().includes(toLowerCase)
-            : false;
+          const titleMatches = (link.title || "").toLowerCase().includes(lowerCaseQuery);
+          const urlMatches = (link.url || "").toLowerCase().includes(lowerCaseQuery);
+          const notesMatches = (link.notes || "").toLowerCase().includes(lowerCaseQuery);
+          const groupMatches = (link.group || "").toLowerCase().includes(lowerCaseQuery);
           return titleMatches || urlMatches || notesMatches || groupMatches;
         });
       }
@@ -126,33 +132,57 @@ document.addEventListener("DOMContentLoaded", async () => {
       savedLinksList.innerHTML = "";
 
       // Add / Re-order appropriate links
-      linksToRender.forEach((link, index) => {
-        const uniqueKey = `${link.url}|${link.title}|${link.group}|${link.savedAt}`;
+      linksToRender.forEach((link) => {
+        if (!link.id) {
+          link.id = generateUniqueId();
+        }
+
         let listItem = document.createElement("li");
-        listItem.dataset.key = uniqueKey;
-        listItem.innerHTML = `
-          <a href="${link.url}" target="_blank"><strong>${
-          link.title || link.url
-        }</strong></a><br>
-            ${
-              link.notes ? `<p class="link-notes">Notes: ${link.notes}</p>` : ""
-            }
-            ${
-              link.group ? `<p class="link-group">Group: ${link.group}</p>` : ""
-            }
-            <div class="link-actions">
-                <button data-url="${link.url}" data-title="${
-          link.title
-        }" data-group="${link.group}" data-savedat="${
-          link.savedAt
-        }" class="edit-btn">Edit</button>
-                <button data-url="${link.url}" data-title="${
-          link.title
-        }" data-group="${link.group}" data-savedat="${
-          link.savedAt
-        }" class="delete-btn">Delete</button>
-            </div>
-          `;
+        listItem.dataset.id = link.id; 
+
+        // Create link title 
+        let linkAnchor = document.createElement("a");
+        linkAnchor.href = link.url;
+        linkAnchor.target = "_blank"; 
+        let strongTag = document.createElement("strong");
+        strongTag.textContent = link.title || link.url; 
+        linkAnchor.appendChild(strongTag);
+        listItem.appendChild(linkAnchor);
+        listItem.appendChild(document.createElement("br"));
+
+        // Add notes if present
+        if (link.notes) {
+          let notesPara = document.createElement("p");
+          notesPara.className = "link-notes";
+          notesPara.textContent = `Notes: ${link.notes}`;
+          listItem.appendChild(notesPara);
+        }
+
+        // Add group if present
+        if (link.group) {
+          let groupPara = document.createElement("p");
+          groupPara.className = "link-group";
+          groupPara.textContent = `Group: ${link.group}`;
+          listItem.appendChild(groupPara);
+        }
+
+        // edit and delete buttons
+        let linkActionsDiv = document.createElement("div");
+        linkActionsDiv.className = "link-actions";
+
+        let editButton = document.createElement("button");
+        editButton.dataset.id = link.id; // Pass only the unique ID
+        editButton.className = "edit-btn";
+        editButton.textContent = "Edit";
+        linkActionsDiv.appendChild(editButton);
+
+        let deleteButton = document.createElement("button");
+        deleteButton.dataset.id = link.id; // Pass only the unique ID
+        deleteButton.className = "delete-btn";
+        deleteButton.textContent = "Delete";
+        linkActionsDiv.appendChild(deleteButton);
+
+        listItem.appendChild(linkActionsDiv);
         savedLinksList.appendChild(listItem);
       });
 
@@ -223,71 +253,77 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Function to display various UI messages
   function showMessage(message, type = "error") {
     messageDisplay.textContent = message;
-    messageDisplay.className = `message-display ${type}`;
+    messageDisplay.classList.remove("info", "success", "error");
+    messageDisplay.classList.add(type);
     messageDisplay.style.display = "block";
 
     setTimeout(() => {
       messageDisplay.style.display = "none";
       messageDisplay.textContent = "";
-      messageDisplay.className = "message-display";
+      messageDisplay.classList.remove(type); 
     }, 3000);
   }
 
   // Function to handle delete button clicks
   async function handleDeleteButtonClick(event) {
-    const urlToDelete = event.target.dataset.url;
-    const titleToDelete = event.target.dataset.title;
-    const groupToDelete = event.target.dataset.group;
-    const savedAtToDelete = event.target.dataset.savedat;
-
+    const idToDelete = event.target.dataset.id; 
     let result = await chrome.storage.local.get(["myLinks"]);
+    // Check for errors after getting storage
+    if (chrome.runtime.lastError) {
+      console.error("Error getting myLinks from storage:", chrome.runtime.lastError);
+      showMessage("Error retrieving links.", "error");
+      return;
+    }
+
     let myLinks = result.myLinks || [];
 
-    // Find exact link to delete
-    const matchedLink = myLinks.filter(
-      (link) =>
-        !(
-          link.url === urlToDelete &&
-          link.title === titleToDelete &&
-          link.group === groupToDelete &&
-          link.savedAt === savedAtToDelete
-        )
-    );
+    // Filter exact link to delete
+    const updatedLinks = myLinks.filter((link) => {
+    });
 
-    // Delete exact link
-    if (matchedLink.length < myLinks.length) {
-      await chrome.storage.local.set({ myLinks: matchedLink });
+    if (updatedLinks.length < myLinks.length) { 
+      await chrome.storage.local.set({ myLinks: updatedLinks });
+
+      if (chrome.runtime.lastError) {
+        console.error("Error setting myLinks to storage:", chrome.runtime.lastError);
+        showMessage("Error saving changes.", "error");
+        return;
+      }
+
       await populateGroupDropdowns();
       displaySavedLinks(searchInput.value, groupFilter.value);
+      showMessage("Link deleted successfully!", "success");
+    } else {
+      showMessage("Failed to delete link: Link not found or no change.", "error");
     }
   }
 
   // Function to handle edit button clicks
   async function handleEditButtonClick(event) {
-    const urlToEdit = event.target.dataset.url;
-    const titleToEdit = event.target.dataset.title;
-    const groupToEdit = event.target.dataset.group;
-    const savedAtToEdit = event.target.dataset.savedat;
+    const idToEdit = event.target.dataset.id; 
 
     const result = await chrome.storage.local.get(["myLinks"]);
+    // Check for errors after getting storage
+    if (chrome.runtime.lastError) {
+      console.error("Error getting myLinks from storage:", chrome.runtime.lastError);
+      showMessage("Error retrieving links for edit.", "error");
+      return;
+    }
+
     const myLinks = result.myLinks || [];
 
-    // Find exact link to edit
-    editIndex = myLinks.findIndex(
-      (link) =>
-        link.url === urlToEdit &&
-        link.title === titleToEdit &&
-        link.group === groupToEdit &&
-        link.savedAt === savedAtToEdit
-    );
+    // Find the link by its unique ID
+    editIndex = myLinks.findIndex((link) => link.id === idToEdit);
     const linkToEdit = myLinks[editIndex];
 
     if (linkToEdit) {
       // Store original link to compare later
       originalLinkUrl = linkToEdit.url;
       originalLinkTitle = linkToEdit.title;
+      originalLinkNotes = linkToEdit.notes; 
       originalLinkGroup = linkToEdit.group;
       originalLinkSavedAt = linkToEdit.savedAt;
+      originalLinkId = linkToEdit.id;
 
       titleInput.value = linkToEdit.title || "";
       notesInput.value = linkToEdit.notes || "";
@@ -308,6 +344,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       saveButton.textContent = "Update Link";
       cancelEditButton.style.display = "block";
 
+      // Animate form title change
       formTitle.classList.add("fade-out");
       setTimeout(() => {
         formTitle.textContent = "Edit Current Link";
@@ -318,7 +355,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         }, 300);
       }, 300);
 
+      // Scroll to the top of the popup
       document.body.scrollTop = document.documentElement.scrollTop = 0;
+    } else {
+      console.warn("Link to edit not found with ID:", idToEdit);
+      showMessage("Failed to find link for editing.", "error");
     }
   }
 
@@ -328,7 +369,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       active: true,
       currentWindow: true,
     });
-    if (tab && tab.url && tab.title) {
+    if (tab && tab.url) {
       titleInput.placeholder = tab.url;
       titleInput.value = tab.title || "";
     } else {
@@ -378,29 +419,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // Save or Edit link to local storage
     try {
       let result = await chrome.storage.local.get(["myLinks"]);
+      if (chrome.runtime.lastError) {
+        console.error("Error getting myLinks from storage:", chrome.runtime.lastError);
+        showMessage("Error retrieving links for save/update.", "error");
+        return;
+      }
+
       let myLinks = result.myLinks || [];
 
       if (editIndex !== -1) {
-        // Remove unedited duplicate link
         const updatedLink = {
-          url: originalLinkUrl,
+          id: originalLinkId, 
+          url: originalLinkUrl, 
           title: titleToSave,
           notes: notesToSave,
           group: groupToSave,
-          savedAt: originalLinkSavedAt,
+          savedAt: originalLinkSavedAt, 
         };
 
         // Check for duplicates 
-        const isDuplicate = myLinks.some((link, index) => {
-            return (
-                index !== editIndex &&
-                link.url === updatedLink.url &&
-                link.title === updatedLink.title &&
-                link.group === updatedLink.group
-            );
+        const isDuplicate = myLinks.some((link) => {
+          return (
+            link.id !== updatedLink.id && // Exclude current link being edited
+            link.url === updatedLink.url &&
+            link.title === updatedLink.title &&
+            link.group === updatedLink.group
+          );
         });
 
         if (isDuplicate) {
@@ -412,33 +458,45 @@ document.addEventListener("DOMContentLoaded", async () => {
         myLinks[editIndex] = updatedLink;
         await chrome.storage.local.set({ myLinks });
 
+        if (chrome.runtime.lastError) {
+          console.error("Error setting myLinks to storage:", chrome.runtime.lastError);
+          showMessage("Error saving updated link.", "error");
+          return;
+        }
+        showMessage("Link updated successfully!", "success");
       } else {
+
+        const newLink = {
+          id: generateUniqueId(), 
+          url: urlToSave,
+          title: titleToSave,
+          notes: notesToSave,
+          group: groupToSave,
+          savedAt: new Date().toISOString(), 
+        };
+
         const isDuplicate = myLinks.some(
           (link) =>
-            link.url === urlToSave &&
-            link.title === titleToSave &&
-            link.group === groupToSave
+            link.url === newLink.url &&
+            link.title === newLink.title &&
+            link.group === newLink.group
         );
         if (isDuplicate) {
           showMessage("This link already exists!", "error");
           return;
         }
 
-        myLinks.push({
-          url: urlToSave,
-          title: titleToSave,
-          notes: notesToSave,
-          group: groupToSave,
-          savedAt: new Date().toISOString(), // for sorting by new
-        });
-
+        myLinks.push(newLink);
         await chrome.storage.local.set({ myLinks });
-        console.log("Link saved successfully:", {
-          url: urlToSave,
-          title: titleToSave,
-          notes: notesToSave,
-          group: groupToSave,
-        });
+
+        // Check for errors after setting storage
+        if (chrome.runtime.lastError) {
+          console.error("Error setting myLinks to storage:", chrome.runtime.lastError);
+          showMessage("Error saving new link.", "error");
+          return;
+        }
+        console.log("Link saved successfully:", newLink);
+        showMessage("Link saved successfully!", "success");
       }
 
       // Reset inputs for next save
@@ -456,6 +514,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       originalLinkTitle = "";
       originalLinkGroup = "";
       originalLinkSavedAt = "";
+      originalLinkId = null;
 
       // Reset form title transition
       formTitle.classList.add("fade-out");
@@ -485,7 +544,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         active: true,
         currentWindow: true,
       });
-      if (tab && tab.url && tab.title) {
+      if (tab && tab.url) {
         titleInput.placeholder = tab.url;
         titleInput.value = tab.title || "";
       } else {
@@ -509,6 +568,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     originalLinkTitle = "";
     originalLinkGroup = "";
     originalLinkSavedAt = "";
+    originalLinkId = null; 
 
     // Reset form title transition
     formTitle.classList.add("fade-out");
@@ -522,6 +582,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 300);
 
     showAllLinks = false; // Reset after canceling edit
+    searchInput.value = ""; 
+    groupFilter.value = ""; 
     displaySavedLinks();
   });
 
@@ -542,6 +604,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     displaySavedLinks(searchInput.value, groupFilter.value);
   });
 
+  // Bookmark import functionality
   if (importBookmarksButton) {
     importBookmarksButton.addEventListener("click", async () => {
       showImportMessage("Importing bookmarks...", "info");
@@ -550,24 +613,34 @@ document.addEventListener("DOMContentLoaded", async () => {
         let importedCount = 0;
 
         let result = await chrome.storage.local.get(["myLinks"]);
+        if (chrome.runtime.lastError) {
+          console.error("Error getting myLinks from storage for import:", chrome.runtime.lastError);
+          showMessage("Error retrieving links for import.", "error");
+          showImportMessage("Failed to import bookmarks.", "error");
+          return;
+        }
+
         let myLinks = result.myLinks || [];
 
         const isDuplicate = (url, title, group) => {
-          return myLinks.some(link =>
-            link.url === url &&
-            link.title === title &&
-            link.group === group
+          return myLinks.some(
+            (link) =>
+              link.url === url &&
+              link.title === title &&
+              link.group === group
           );
         };
 
+        // process bookmark nodes
         function processBookmarks(nodes) {
-          nodes.forEach(node => {
+          nodes.forEach((node) => {
             if (node.url) {
-              const bookmarkTitle = node.title || node.url;
+              const bookmarkTitle = node.title || node.url; 
               const importedGroup = "Imported Links";
 
               if (!isDuplicate(node.url, bookmarkTitle, importedGroup)) {
                 myLinks.push({
+                  id: generateUniqueId(),
                   url: node.url,
                   title: bookmarkTitle,
                   notes: "",
@@ -587,20 +660,30 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (importedCount > 0) {
           await chrome.storage.local.set({ myLinks });
-          showImportMessage(`Successfully imported ${importedCount} bookmark(s) into "Imported Links"!`, "success");
+          if (chrome.runtime.lastError) {
+            console.error("Error setting myLinks to storage after import:", chrome.runtime.lastError);
+            showMessage("Error saving imported bookmarks.", "error");
+            showImportMessage("Failed to import bookmarks.", "error");
+            return;
+          }
+          showImportMessage(
+            `Successfully imported ${importedCount} bookmark(s) into "Imported Links"!`,
+            "success"
+          );
 
           await populateGroupDropdowns();
           showAllLinks = false;
           displaySavedLinks();
-
         } else {
           showImportMessage("No new bookmarks found to import.", "info");
         }
-
       } catch (error) {
         console.error("Error importing bookmarks:", error);
-        showMessage("Failed to import bookmarks. Please ensure the 'bookmarks' permission is granted.", "error");
-        showImportMessage("Failed to import bookmarks.", "error");
+        showMessage(
+          "Failed to import bookmarks. Please ensure the 'bookmarks' permission is granted.",
+          "error"
+        );
+        showImportMessage("Failed to import bookmarks.", "error"); 
       }
     });
   }
