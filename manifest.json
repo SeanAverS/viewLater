@@ -20,5 +20,6 @@
     "storage",
     "activeTab",
     "bookmarks"
-  ]
+  ], 
+   "incognito": "split" 
 }
