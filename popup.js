@@ -412,7 +412,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         return;
       }
     } else {
-      groupToSave = groupInput.value;
+      groupToSave = groupInput.value.trim();
     }
 
     if (!urlToSave) {
