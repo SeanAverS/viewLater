@@ -279,6 +279,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Filter exact link to delete
     const updatedLinks = myLinks.filter((link) => {
+       return link.id !== idToDelete; 
     });
 
     if (updatedLinks.length < myLinks.length) { 
