@@ -15,10 +15,10 @@
     <option value="">No Group</option>
     <option value="NEW_GROUP">Create New Group</option>
   </select>
-  <input type="text" id="newGroupInput" placeholder="Enter new group name" style="display: none;">
+  <input type="text" id="newGroupInput" placeholder="Enter new group name" style="display: none;" aria-hidden="true">
   <button id="saveButton">Save</button>
 
-  <div id="messageDisplay" class="message-display" style="display: none;"></div>
+  <div id="messageDisplay" class="message-display" style="display: none;" role="status" aria-live="polite"></div>
 
   <h2 id="mySavedLinksSection">My Saved Links</h2>
   <input type="text" id="searchInput" placeholder="Search links" />
@@ -29,8 +29,8 @@
   <ul id="savedLinksList"></ul>
 
   <button id="importBookmarksButton">Import Bookmarks</button>
-  <p id="importMessage"></p>
-       
+  <p id="importMessage" role="status" aria-live="polite"></p>
+        
   <p id="attribution">V icon made by <a href="https://www.flaticon.com/authors/rohim" title="Rohim">Rohim</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></p>
 
   <script src="popup.js"></script>
