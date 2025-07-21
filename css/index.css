@@ -30,7 +30,7 @@ textarea,
   border: 1px solid #3e4451;
   border-radius: 4px;
   background-color: #3b4048;
-  color: #abb2bf;
+  color: #d0d7e0;
   box-sizing: border-box;
   max-width: 280px;
   margin-left: auto;
@@ -42,7 +42,7 @@ textarea,
 #titleInput {
   font-weight: bold;
   font-size: 1.1em;
-  color: #e06c75;
+  color: #f09292;
   margin-bottom: 10px;
 }
 
@@ -53,7 +53,7 @@ textarea {
 
 button {
   background-color: #61afef;
-  color: white;
+  color: #f5f5f5;
   padding: 8px 9px;
   border: none;
   border-radius: 4px;
@@ -81,6 +81,7 @@ button:hover {
 
 .delete-btn {
   background-color: #e06c75 !important;
+  color: #fff2f2 !important;
   padding: 5px 8px !important;
   border-radius: 3px !important;
   font-size: 0.8em !important;
@@ -94,6 +95,7 @@ button:hover {
 
 .edit-btn {
   background-color: #61afef !important;
+  color: #f5f5f5 !important;
   padding: 5px 8px !important;
   border-radius: 3px !important;
   font-size: 0.8em !important;
@@ -130,13 +132,13 @@ li {
 }
 
 li a {
-  color: #98c379;
+  color: #c0d380;
   font-size: 0.9em;
   text-decoration: none;
 }
 
 li a strong {
-  color: #e06c75;
+  color: #f09292;
   transition: color 0.2s ease;
 }
 
@@ -155,8 +157,8 @@ li a:hover strong {
 .link-notes {
   font-style: italic;
   font-size: 0.85em;
-  margin-top: 5px;
   color: #abb2bf;
+  margin-top: 5px;
 }
 
 #groupInput {
@@ -252,14 +254,14 @@ li a:hover strong {
 
 .message-display.success {
   background-color: #2e353f;
-  color: #98c379;
+  color: #c3d6a0;
   border: 1px solid #629c42;
   opacity: 1;
 }
 
 .message-display.error {
   background-color: #3f2e32;
-  color: #e06c75;
+  color: #f7aaaa;
   border: 1px solid #a34751;
   opacity: 1;
 }
@@ -275,7 +277,7 @@ li a:hover strong {
     text-align: center; 
     font-size: 0.85em;
     margin-top: 20px; 
-    color: #abb2bf; 
+    color: #abb2bf;
 }
 
 #attribution a {
