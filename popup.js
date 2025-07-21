@@ -174,12 +174,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         editButton.dataset.id = link.id; // Pass only the unique ID
         editButton.className = "edit-btn";
         editButton.textContent = "Edit";
+        editButton.setAttribute('aria-label', `Edit ${link.title || link.url}`);
         linkActionsDiv.appendChild(editButton);
 
         let deleteButton = document.createElement("button");
         deleteButton.dataset.id = link.id; // Pass only the unique ID
         deleteButton.className = "delete-btn";
         deleteButton.textContent = "Delete";
+        deleteButton.setAttribute('aria-label', `Delete ${link.title || link.url}`);
         linkActionsDiv.appendChild(deleteButton);
 
         listItem.appendChild(linkActionsDiv);
@@ -205,21 +207,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         showMoreLessContainer.className = "show-more-container";
 
         let showMoreLessButton = document.createElement("button");
+        showMoreLessButton.setAttribute('aria-controls', 'savedLinksList');
         showMoreLessContainer.appendChild(showMoreLessButton);
 
         if (!showAllLinks) {
           showMoreLessButton.id = "showMoreLinks";
           showMoreLessButton.innerHTML = `Show All Links <span class="arrow-down"></span>`;
+          showMoreLessButton.setAttribute('aria-expanded', 'false');
           showMoreLessButton.onclick = () => {
             showAllLinks = true;
             displaySavedLinks(searchInput.value, groupFilter.value);
+            showMoreLessButton.setAttribute('aria-expanded', 'true');
           };
         } else {
           showMoreLessButton.id = "showLessLinks";
           showMoreLessButton.innerHTML = `Show Less <span class="arrow-up"></span>`;
+          showMoreLessButton.setAttribute('aria-expanded', 'true');
           showMoreLessButton.onclick = () => {
             showAllLinks = false;
             displaySavedLinks(searchInput.value, groupFilter.value);
+            showMoreLessButton.setAttribute('aria-expanded', 'false');
             if (mySavedLinksSection) {
               mySavedLinksSection.scrollIntoView({
                 behavior: "smooth",
@@ -331,6 +338,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       groupInput.value = linkToEdit.group || "";
       newGroupInput.value = "";
       newGroupInput.style.display = "none";
+      newGroupInput.setAttribute('aria-hidden', 'true');
 
       // Reset group input if link group isn't in dropdown
       if (
@@ -387,9 +395,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   groupInput.addEventListener("change", () => {
     if (groupInput.value === "NEW_GROUP") {
       newGroupInput.style.display = "block";
+      newGroupInput.setAttribute('aria-hidden', 'false');
     } else {
       newGroupInput.style.display = "none";
       newGroupInput.value = "";
+      newGroupInput.setAttribute('aria-hidden', 'true');
     }
   });
 
@@ -506,6 +516,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       groupInput.value = "";
       newGroupInput.value = "";
       newGroupInput.style.display = "none";
+      newGroupInput.setAttribute('aria-hidden', 'true');
       searchInput.value = "";
       groupFilter.value = "";
       saveButton.textContent = "Save";
@@ -562,6 +573,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     groupInput.value = "";
     newGroupInput.value = "";
     newGroupInput.style.display = "none";
+    newGroupInput.setAttribute('aria-hidden', 'true');
     saveButton.textContent = "Save";
     cancelEditButton.style.display = "none";
     editIndex = -1;
