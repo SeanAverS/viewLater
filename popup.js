@@ -142,13 +142,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         // Create link title 
         let linkAnchor = document.createElement("a");
-        linkAnchor.href = link.url;
-        linkAnchor.target = "_blank"; 
-        let strongTag = document.createElement("strong");
-        strongTag.textContent = link.title || link.url; 
-        linkAnchor.appendChild(strongTag);
-        listItem.appendChild(linkAnchor);
-        listItem.appendChild(document.createElement("br"));
+        // Check for invalid url 
+        if (link.url) {
+          linkAnchor.href = link.url;
+          linkAnchor.target = "_blank";
+          let strongTag = document.createElement("strong");
+          strongTag.textContent = link.title || link.url;
+          linkAnchor.appendChild(strongTag);
+          listItem.appendChild(linkAnchor);
+          listItem.appendChild(document.createElement("br"));
+        } else {
+          // just display title, no link
+          let strongTag = document.createElement("strong");
+          strongTag.textContent =
+            link.title || "Link Title Missing (URL corrupted)";
+          listItem.appendChild(strongTag);
+          listItem.appendChild(document.createElement("br"));
+          console.warn(`Link with ID ${link.id} has a missing or invalid URL.`);
+        }
 
         // Add notes if present
         if (link.notes) {
