@@ -96,7 +96,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       option.value = group;
       option.textContent = group;
       groupInput.appendChild(option);
-    });
+    }); 
   }
 
   // Function to display saved links and groups
@@ -149,6 +149,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (link.url) {
           linkAnchor.href = link.url;
           linkAnchor.target = "_blank";
+          linkAnchor.rel = "noopener noreferrer"; 
           let strongTag = document.createElement("strong");
           strongTag.textContent = link.title || link.url;
           linkAnchor.appendChild(strongTag);
