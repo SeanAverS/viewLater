@@ -105,7 +105,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       const result = await chrome.storage.local.get(["myLinks"]);
       let myLinks = result.myLinks || [];
 
-      // Filter by selected group first
+        myLinks = myLinks.filter(link =>
+            typeof link === 'object' && link !== null && 'id' in link
+        );
+
       if (selectedGroup) {
         myLinks = myLinks.filter((link) => link.group === selectedGroup);
       }
