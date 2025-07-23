@@ -521,7 +521,6 @@ document.addEventListener("DOMContentLoaded", async () => {
           showMessage("Error saving new link.", "error");
           return;
         }
-        console.log("Link saved successfully:", newLink);
         showMessage("Link saved successfully!", "success");
       }
 
