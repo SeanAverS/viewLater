@@ -12,7 +12,15 @@ This extension acts as a personal bookmark manager, allowing you to store links 
 
 ---
 
-## Installation (for Chrome) 
+## Installation 
+
+### 1. Chrome Web Store Install 
+
+1.  Go to the web store link here:
+    **[https://chromewebstore.google.com/detail/viewlater/emnocblggljbkjpkcaphljnaoepmloon](https://chromewebstore.google.com/detail/viewlater/emnocblggljbkjpkcaphljnaoepmloon)**
+2.  Click the **"Add to Chrome"** button.
+
+### 2. Manual Install (for Devs)
 
 1.  **Clone the repository:**
     ```bash
