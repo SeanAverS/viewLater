@@ -141,27 +141,22 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         let listItem = document.createElement("li");
-        listItem.dataset.id = link.id; 
+        listItem.dataset.id = link.id;
 
-        // Create link title 
-        let linkAnchor = document.createElement("a");
-        // Check for invalid url 
+        // Build saved link
         if (link.url) {
-          linkAnchor.href = link.url;
-          linkAnchor.target = "_blank";
-          linkAnchor.rel = "noopener noreferrer"; 
-          let strongTag = document.createElement("strong");
-          strongTag.textContent = link.title || link.url;
-          linkAnchor.appendChild(strongTag);
-          listItem.appendChild(linkAnchor);
-          listItem.appendChild(document.createElement("br"));
+          listItem.innerHTML = `
+        <a href="${link.url}" target="_blank" rel="noopener noreferrer">
+            <strong>${link.title || link.url}</strong>
+        </a>
+        <br>
+    `;
         } else {
-          // just display title, no link
-          let strongTag = document.createElement("strong");
-          strongTag.textContent =
-            link.title || "Link Title Missing (URL corrupted)";
-          listItem.appendChild(strongTag);
-          listItem.appendChild(document.createElement("br"));
+          // invalid url
+          listItem.innerHTML = `
+        <strong>${link.title || "Link Title Missing (URL corrupted)"}</strong>
+        <br>
+    `;
           console.warn(`Link with ID ${link.id} has a missing or invalid URL.`);
         }
 
@@ -189,14 +184,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         editButton.dataset.id = link.id; // Pass only the unique ID
         editButton.className = "edit-btn";
         editButton.textContent = "Edit";
-        editButton.setAttribute('aria-label', `Edit ${link.title || link.url}`);
+        editButton.setAttribute("aria-label", `Edit ${link.title || link.url}`);
         linkActionsDiv.appendChild(editButton);
 
         let deleteButton = document.createElement("button");
         deleteButton.dataset.id = link.id; // Pass only the unique ID
         deleteButton.className = "delete-btn";
         deleteButton.textContent = "Delete";
-        deleteButton.setAttribute('aria-label', `Delete ${link.title || link.url}`);
+        deleteButton.setAttribute(
+          "aria-label",
+          `Delete ${link.title || link.url}`
+        );
         linkActionsDiv.appendChild(deleteButton);
 
         listItem.appendChild(linkActionsDiv);
