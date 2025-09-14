@@ -198,6 +198,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         linkActionsDiv.appendChild(deleteButton);
 
         listItem.appendChild(linkActionsDiv);
+        
+        // display complete link 
         savedLinksList.appendChild(listItem);
       });
 
