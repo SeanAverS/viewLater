@@ -211,37 +211,39 @@ document.addEventListener("DOMContentLoaded", async () => {
         savedLinksList.appendChild(msgItem);
       }
 
-      // "Show All Links" or "Show Less" content
-      const existingShowMoreLessContainer = document.querySelector(".show-more-container");
-      if (existingShowMoreLessContainer) {
-        existingShowMoreLessContainer.remove();
+      const removeOldShowLinksButton = document.querySelector(".show-more-container");
+      if (removeOldShowLinksButton) {
+        removeOldShowLinksButton.remove();
       }
 
+      // Determine number of links displayed 
       if (myLinks.length > initialDisplayLimit) {
-        let showMoreLessContainer = document.createElement("div");
-        showMoreLessContainer.className = "show-more-container";
+        let showLinkButtonContainer = document.createElement("div");
+        showLinkButtonContainer.className = "show-more-container";
 
-        let showMoreLessButton = document.createElement("button");
-        showMoreLessButton.setAttribute('aria-controls', 'savedLinksList');
-        showMoreLessContainer.appendChild(showMoreLessButton);
+        let showLinkButton = document.createElement("button");
+        showLinkButton.setAttribute('aria-controls', 'savedLinksList');
+        showLinkButtonContainer.appendChild(showLinkButton);
 
+        // display intial links (3)
         if (!showAllLinks) {
-          showMoreLessButton.id = "showMoreLinks";
-          showMoreLessButton.innerHTML = `Show All Links <span class="arrow-down"></span>`;
-          showMoreLessButton.setAttribute('aria-expanded', 'false');
-          showMoreLessButton.onclick = () => {
+          showLinkButton.id = "showMoreLinks";
+          showLinkButton.innerHTML = `Show All Links <span class="arrow-down"></span>`;
+          showLinkButton.setAttribute('aria-expanded', 'false');
+          showLinkButton.onclick = () => {
             showAllLinks = true;
             displaySavedLinks(searchInput.value, groupFilter.value);
-            showMoreLessButton.setAttribute('aria-expanded', 'true');
+            showLinkButton.setAttribute('aria-expanded', 'true');
           };
-        } else {
-          showMoreLessButton.id = "showLessLinks";
-          showMoreLessButton.innerHTML = `Show Less <span class="arrow-up"></span>`;
-          showMoreLessButton.setAttribute('aria-expanded', 'true');
-          showMoreLessButton.onclick = () => {
+        } else { // display all links
+          showLinkButton.id = "showLessLinks";
+          showLinkButton.innerHTML = `Show Less <span class="arrow-up"></span>`;
+          showLinkButton.setAttribute('aria-expanded', 'true');
+          showLinkButton.onclick = () => {
             showAllLinks = false;
             displaySavedLinks(searchInput.value, groupFilter.value);
-            showMoreLessButton.setAttribute('aria-expanded', 'false');
+            showLinkButton.setAttribute('aria-expanded', 'false');
+            // scroll up to "My Saved Links"
             if (mySavedLinksSection) {
               mySavedLinksSection.scrollIntoView({
                 behavior: "smooth",
@@ -250,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
           };
         }
-        savedLinksList.appendChild(showMoreLessContainer);
+        savedLinksList.appendChild(showLinkButtonContainer);
       }
 
       // Prevent duplicate delete button
@@ -272,7 +274,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  // Function to display various UI messages
+  // Function to display various success or error messages
   function showMessage(message, type = "error") {
     messageDisplay.textContent = message;
     messageDisplay.classList.remove("info", "success", "error");
@@ -288,27 +290,34 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Function to handle delete button clicks
   async function handleDeleteButtonClick(event) {
-    const idToDelete = event.target.dataset.id; 
+    const idToDelete = event.target.dataset.id;
     let result = await chrome.storage.local.get(["myLinks"]);
-    // Check for errors after getting storage
+
     if (chrome.runtime.lastError) {
-      console.error("Error getting myLinks from storage:", chrome.runtime.lastError);
+      console.error(
+        "Error getting myLinks from storage:",
+        chrome.runtime.lastError
+      );
       showMessage("Error retrieving links.", "error");
       return;
     }
 
     let myLinks = result.myLinks || [];
 
-    // Filter exact link to delete
-    const updatedLinks = myLinks.filter((link) => {
-       return link.id !== idToDelete; 
-    });
+    // find selected link
+    const indexToDelete = myLinks.findIndex((link) => link.id === idToDelete);
 
-    if (updatedLinks.length < myLinks.length) { 
-      await chrome.storage.local.set({ myLinks: updatedLinks });
+    // delete selected link
+    if (indexToDelete !== -1) {
+      myLinks.splice(indexToDelete, 1);
+      
+      await chrome.storage.local.set({ myLinks: myLinks });
 
       if (chrome.runtime.lastError) {
-        console.error("Error setting myLinks to storage:", chrome.runtime.lastError);
+        console.error(
+          "Error setting myLinks to storage:",
+          chrome.runtime.lastError
+        );
         showMessage("Error saving changes.", "error");
         return;
       }
@@ -317,7 +326,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       displaySavedLinks(searchInput.value, groupFilter.value);
       showMessage("Link deleted successfully!", "success");
     } else {
-      showMessage("Failed to delete link: Link not found or no change.", "error");
+      showMessage(
+        "Failed to delete link: Link not found or no change.",
+        "error"
+      );
     }
   }
 
