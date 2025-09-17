@@ -437,11 +437,14 @@ document.addEventListener("DOMContentLoaded", async () => {
       active: true,
       currentWindow: true,
     });
+
+    // determine url exsistence
     const urlToSave = editIndex === -1 ? tab.url : originalLinkUrl;
+
     const titleToSave = titleInput.value.trim();
     const notesToSave = notesInput.value.trim();
 
-    // Determine link to save group to
+    // determine a saved links group
     let groupToSave = "";
     if (groupInput.value === "NEW_GROUP") {
       groupToSave = newGroupInput.value.trim();
@@ -458,6 +461,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
+    // 
     try {
       let result = await chrome.storage.local.get(["myLinks"]);
       if (chrome.runtime.lastError) {
