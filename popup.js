@@ -367,12 +367,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       newGroupInput.style.display = "none";
       newGroupInput.setAttribute('aria-hidden', 'true');
 
-      // Reset group input if link group isn't in dropdown
-      if (
-        !Array.from(groupInput.options).some(
-          (option) => option.value === linkToEdit.group
-        )
-      ) {
+      // Only display groups that exist
+      const availableGroups = Array.from(groupInput.options).map(
+        (option) => option.value
+      );
+      const groupExists = availableGroups.includes(linkToEdit.group);
+
+      if (!groupExists) {
         groupInput.value = "";
       }
 
