@@ -461,8 +461,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    // 
-    try {
+    // display and store an edited or new link
+    try { // save edited link
       let result = await chrome.storage.local.get(["myLinks"]);
       if (chrome.runtime.lastError) {
         console.error("Error getting myLinks from storage:", chrome.runtime.lastError);
@@ -507,7 +507,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           return;
         }
         showMessage("Link updated successfully!", "success");
-      } else {
+      } else { // save new link
 
         const newLink = {
           id: generateUniqueId(), 
@@ -552,7 +552,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       groupFilter.value = "";
       saveButton.textContent = "Save";
       cancelEditButton.style.display = "none";
-      editIndex = -1; // Reset edit index
+      editIndex = -1;
       originalLinkUrl = "";
       originalLinkTitle = "";
       originalLinkGroup = "";
@@ -579,7 +579,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // Cancel Edit button event listener
+  // Cancel an edit 
   cancelEditButton.addEventListener("click", async () => {
     // Reset inputs and UI state
     try {
@@ -651,8 +651,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Bookmark import functionality
   if (importBookmarksButton) {
     importBookmarksButton.addEventListener("click", async () => {
+
+      // import then compare chrome and viewLater bookmarks
       showImportMessage("Importing bookmarks...", "info");
-      try {
+      try { 
         const bookmarkTree = await chrome.bookmarks.getTree();
         let importedCount = 0;
 
@@ -675,7 +677,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           );
         };
 
-        // process bookmark nodes
+        // import chrome bookmarks into viewLater under "Imported Links"
         function processBookmarks(nodes) {
           nodes.forEach((node) => {
             if (node.url) {
